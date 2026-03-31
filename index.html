@@ -3,731 +3,685 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文浩识字卡 v3 📚</title>
+<title>文浩识字卡 v4 📚</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="识字卡">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
-<link rel="manifest" href="manifest.json">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  color: #333;
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;color:#333}
+.container{max-width:500px;width:100%}
+@media(min-width:768px){
+body{padding:30px;align-items:flex-start}
+.container{max-width:100%;display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto auto 1fr;gap:20px}
+h1{grid-column:1/-1;font-size:30px}
+.stats{grid-column:1/-1}
+.nav{grid-column:2;grid-row:3;flex-direction:column;gap:10px;margin-bottom:0}
+.nav-btn{flex:none;padding:16px;font-size:14px;text-align:left}
+.view{grid-column:1;grid-row:3}
+.card{min-height:380px}
+.card .hanzi{font-size:160px}
+.card .pinyin{font-size:30px}
+.card .word{font-size:24px}
+.card .sentence{font-size:18px}
+.btn{padding:24px;font-size:22px}
+.word-list{max-height:600px}
+.import-area textarea{height:250px}
 }
-.container {
-  max-width: 500px;
-  width: 100%;
-}
-
-/* ===== iPad / Tablet Layout ===== */
-@media (min-width: 768px) {
-  body { padding: 30px; align-items: flex-start; }
-  .container { max-width: 100%; display: grid; grid-template-columns: 1fr 380px; grid-template-rows: auto auto 1fr; gap: 20px; }
-  h1 { grid-column: 1 / -1; font-size: 30px; }
-  .stats { grid-column: 1 / -1; }
-  .nav { grid-column: 2; grid-row: 3; flex-direction: column; gap: 10px; margin-bottom: 0; }
-  .nav-btn { flex: none; padding: 16px; font-size: 14px; text-align: left; }
-  #view-study, #view-list, #view-import, #view-wrong, #view-stats { grid-column: 1; grid-row: 3; }
-  .card { min-height: 380px; }
-  .card .hanzi { font-size: 160px; }
-  .card .pinyin { font-size: 30px; }
-  .card .word { font-size: 24px; }
-  .card .sentence { font-size: 18px; }
-  .btn { padding: 24px; font-size: 22px; }
-  .word-list { max-height: 600px; }
-  .import-area textarea { height: 250px; }
-}
-
-h1 { color: white; text-align: center; margin-bottom: 20px; font-size: 24px; }
-.stats {
-  display: flex;
-  justify-content: space-around;
-  background: rgba(255,255,255,0.15);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 20px;
-  color: white;
-  font-size: 14px;
-}
-.stat-item { text-align: center; }
-.stat-num { font-size: 24px; font-weight: bold; }
-.stat-label { font-size: 11px; opacity: 0.8; }
-
-/* Card */
-.card-wrapper {
-  perspective: 1000px;
-  margin-bottom: 20px;
-}
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 40px 20px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: transform 0.3s;
-}
-.card:active { transform: scale(0.98); }
-.card .hanzi {
-  font-size: 120px;
-  font-weight: bold;
-  color: #2d3436;
-  line-height: 1.2;
-  margin-bottom: 10px;
-}
-.card .pinyin {
-  font-size: 24px;
-  color: #636e72;
-  margin-bottom: 5px;
-  display: none;
-}
-.card .word {
-  font-size: 20px;
-  color: #b2bec3;
-  display: none;
-}
-.card .sentence {
-  font-size: 16px;
-  color: #636e72;
-  margin-top: 8px;
-  display: none;
-}
-.card.show-hint .pinyin,
-.card.show-hint .word,
-.card.show-hint .sentence { display: block; }
-.hint-btn {
-  background: none;
-  border: 1px dashed #ddd;
-  color: #aaa;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 15px;
-}
-.hint-btn:hover { border-color: #999; color: #666; }
-
-/* Progress */
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 3px;
-  margin-bottom: 15px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #00b894;
-  border-radius: 3px;
-  transition: width 0.3s;
-}
-
-/* Buttons */
-.buttons {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-.btn {
-  flex: 1;
-  padding: 18px;
-  border: none;
-  border-radius: 16px;
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.btn:active { transform: scale(0.95); }
-.btn-know {
-  background: #00b894;
-  color: white;
-}
-.btn-know:hover { background: #00a884; }
-.btn-dont-know {
-  background: #e17055;
-  color: white;
-}
-.btn-dont-know:hover { background: #d14532; }
-
-/* Navigation */
-.nav {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-.nav-btn {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.1);
-  color: white;
-  border-radius: 12px;
-  font-size: 11px;
-  cursor: pointer;
-  text-align: center;
-  -webkit-appearance: none;
-  appearance: none;
-  font-family: inherit;
-}
-.nav-btn:hover { background: rgba(255,255,255,0.2); }
-.nav-btn.active { background: rgba(255,255,255,0.3); border-color: white; }
-
-/* Views */
-.view { display: none; }
-.view.active { display: block; }
-
-/* Lists */
-.word-list {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-.word-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  font-size: 16px;
-}
-.word-item:last-child { border-bottom: none; }
-.word-item .char { font-size: 24px; font-weight: bold; }
-.word-item .info { font-size: 13px; color: #999; }
-.badge {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 10px;
-  color: white;
-}
-.badge-new { background: #74b9ff; }
-.badge-learning { background: #fdcb6e; color: #333; }
-.badge-reviewing { background: #a29bfe; }
-.badge-mastered { background: #00b894; }
-
-/* Import/Export */
-.import-area {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-}
-.import-area textarea {
-  width: 100%;
-  height: 200px;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 18px;
-  resize: vertical;
-}
-.import-area textarea:focus { border-color: #667eea; outline: none; }
-.import-btn {
-  width: 100%;
-  padding: 14px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 10px;
-}
-.import-btn:hover { background: #5a6fd6; }
-.import-info { color: white; font-size: 13px; margin-top: 10px; opacity: 0.8; text-align: center; }
-
-/* Empty state */
-.empty {
-  text-align: center;
-  padding: 60px 20px;
-  color: white;
-}
-.empty .emoji { font-size: 60px; margin-bottom: 15px; }
-.empty p { font-size: 16px; opacity: 0.8; }
-
-/* Done state */
-.done {
-  text-align: center;
-  padding: 60px 20px;
-}
-.done .emoji { font-size: 80px; margin-bottom: 15px; }
-.done h2 { font-size: 24px; margin-bottom: 10px; }
-.done p { color: #666; }
-
-/* Stats view */
-.stats-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-}
-.stats-card h3 { margin-bottom: 12px; font-size: 16px; }
-.stats-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
-}
-.stats-row:last-child { border-bottom: none; }
-.stats-row .label { color: #666; }
-.stats-row .value { font-weight: bold; }
-.stats-bar {
-  height: 20px;
-  background: #eee;
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 8px 0;
-}
-.stats-bar-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.3s;
-}
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-}
-.history-item:last-child { border-bottom: none; }
-/* Data management */
-.data-section {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-  margin-top: 15px;
-}
-.data-section h3 { margin-bottom: 10px; font-size: 16px; }
+h1{color:#fff;text-align:center;margin-bottom:20px;font-size:24px}
+.stats{display:flex;justify-content:space-around;background:rgba(255,255,255,.15);border-radius:12px;padding:12px;margin-bottom:20px;color:#fff;font-size:14px}
+.stat-item{text-align:center}
+.stat-num{font-size:24px;font-weight:700}
+.stat-label{font-size:11px;opacity:.8}
+.card-wrapper{perspective:1000px;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:40px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:transform .3s}
+.card:active{transform:scale(.98)}
+.card .hanzi{font-size:120px;font-weight:700;color:#2d3436;line-height:1.2;margin-bottom:10px}
+.card .pinyin{font-size:24px;color:#636e72;margin-bottom:5px;display:none}
+.card .word{font-size:20px;color:#b2bec3;display:none}
+.card .sentence{font-size:16px;color:#636e72;margin-top:8px;display:none}
+.card.show-hint .pinyin,.card.show-hint .word,.card.show-hint .sentence{display:block}
+.hint-btn{background:none;border:1px dashed #ddd;color:#aaa;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;margin-top:15px}
+.hint-btn:hover{border-color:#999;color:#666}
+.progress-bar{width:100%;height:6px;background:rgba(255,255,255,.2);border-radius:3px;margin-bottom:15px;overflow:hidden}
+.progress-fill{height:100%;background:#00b894;border-radius:3px;transition:width .3s}
+.buttons{display:flex;gap:15px;margin-bottom:20px}
+.btn{flex:1;padding:18px;border:none;border-radius:16px;font-size:20px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.95)}
+.btn-know{background:#00b894;color:#fff}
+.btn-know:hover{background:#00a884}
+.btn-dont-know{background:#e17055;color:#fff}
+.btn-dont-know:hover{background:#d14532}
+.nav{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.nav-btn{flex:1;padding:12px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:12px;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;appearance:none;font-family:inherit;min-width:60px}
+.nav-btn:hover{background:rgba(255,255,255,.2)}
+.nav-btn.active{background:rgba(255,255,255,.3);border-color:#fff}
+.view{display:none}.view.active{display:block}
+.word-list{background:#fff;border-radius:12px;padding:15px;max-height:400px;overflow-y:auto}
+.word-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:16px}
+.word-item:last-child{border-bottom:none}
+.word-item .char{font-size:24px;font-weight:700}
+.word-item .info{font-size:13px;color:#999}
+.badge{font-size:11px;padding:3px 8px;border-radius:10px;color:#fff}
+.badge-new{background:#74b9ff}
+.badge-learning{background:#fdcb6e;color:#333}
+.badge-reviewing{background:#a29bfe}
+.badge-mastered{background:#00b894}
+.import-area{background:#fff;border-radius:12px;padding:15px}
+.import-area textarea{width:100%;height:200px;border:2px dashed #ddd;border-radius:8px;padding:10px;font-size:18px;resize:vertical}
+.import-area textarea:focus{border-color:#667eea;outline:none}
+.import-btn{width:100%;padding:14px;background:#667eea;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
+.import-btn:hover{background:#5a6fd6}
+.import-info{color:#fff;font-size:13px;margin-top:10px;opacity:.8;text-align:center}
+.empty{text-align:center;padding:60px 20px;color:#fff}
+.empty .emoji{font-size:60px;margin-bottom:15px}
+.empty p{font-size:16px;opacity:.8}
+.done{text-align:center;padding:60px 20px}
+.done .emoji{font-size:80px;margin-bottom:15px}
+.done h2{font-size:24px;margin-bottom:10px}
+.done p{color:#666}
+.stats-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:15px}
+.stats-card h3{margin-bottom:12px;font-size:16px}
+.stats-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+.stats-row:last-child{border-bottom:none}
+.stats-row .label{color:#666}
+.stats-row .value{font-weight:700}
+.stats-bar{height:20px;background:#eee;border-radius:10px;overflow:hidden;margin:8px 0}
+.stats-bar-fill{height:100%;border-radius:10px;transition:width .3s}
+.history-item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;font-size:14px}
+.history-item:last-child{border-bottom:none}
+.data-section{background:#fff;border-radius:12px;padding:15px;margin-top:15px}
+.data-section h3{margin-bottom:10px;font-size:16px}
+.review-btn{width:100%;padding:16px;background:#e17055;color:#fff;border:none;border-radius:16px;font-size:18px;font-weight:700;cursor:pointer;margin-bottom:15px}
+.review-btn:hover{background:#d14532}
 </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>📚 文浩识字卡</h1>
-
-  <!-- Stats -->
-  <div class="stats">
-    <div class="stat-item">
-      <div class="stat-num" id="stat-today">0</div>
-      <div class="stat-label">今日待复习</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-known">0</div>
-      <div class="stat-label">已认识</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-total">0</div>
-      <div class="stat-label">总字数</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-mastered">0</div>
-      <div class="stat-label">已掌握</div>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <div class="nav">
-    <button class="nav-btn active" onclick="switchView('study', this)">📖 学习</button>
-    <button class="nav-btn" onclick="switchView('list', this)">📋 字表</button>
-    <button class="nav-btn" onclick="switchView('import', this)">➕ 添加</button>
-    <button class="nav-btn" onclick="switchView('wrong', this)">❌ 不认识</button>
-    <button class="nav-btn" onclick="switchView('stats', this)">📊 统计</button>
-  </div>
-
-  <!-- Study View -->
-  <div id="view-study" class="view active">
-    <div id="study-area"></div>
-  </div>
-
-  <!-- List View -->
-  <div id="view-list" class="view">
-    <div class="word-list" id="word-list"></div>
-  </div>
-
-  <!-- Import View -->
-  <div id="view-import" class="view">
-    <div class="import-area">
-      <h3 style="margin-bottom:10px;">添加新字卡</h3>
-      <p style="font-size:13px;color:#999;margin-bottom:10px;">每行一个字，格式：字 拼音 组词（用空格分隔）<br>例如：龙 lóng 龙舟</p>
-      <textarea id="import-text" placeholder="龙 lóng 龙舟&#10;凤 fèng 凤凰&#10;山 shān 山水&#10;水 shuǐ 水果"></textarea>
-      <button class="import-btn" onclick="importCards()">📥 导入字卡</button>
-      <button class="import-btn" style="background:#e17055;margin-top:5px;" onclick="exportCards()">📤 导出数据</button>
-      <button class="import-btn" style="background:#fdcb6e;color:#333;margin-top:5px;" onclick="resetAll()">🔄 重置所有数据</button>
-    </div>
-    <div class="import-info">数据自动保存在浏览器中</div>
-  </div>
-
-  <!-- Wrong/Unknown View -->
-  <div id="view-wrong" class="view">
-    <div class="word-list" id="wrong-list"></div>
-  </div>
-
-  <!-- Stats View -->
-  <div id="view-stats" class="view">
-    <div id="stats-area"></div>
-  </div>
+<h1>📚 文浩识字卡 v4</h1>
+<div class="stats">
+<div class="stat-item"><div class="stat-num" id="stat-today">0</div><div class="stat-label">今日待学</div></div>
+<div class="stat-item"><div class="stat-num" id="stat-known">0</div><div class="stat-label">已认识</div></div>
+<div class="stat-item"><div class="stat-num" id="stat-total">0</div><div class="stat-label">总字数</div></div>
+<div class="stat-item"><div class="stat-num" id="stat-mastered">0</div><div class="stat-label">已掌握</div></div>
+</div>
+<div class="nav">
+<button class="nav-btn active" onclick="switchView('study',this)">📖 学习</button>
+<button class="nav-btn" onclick="switchView('list',this)">📋 字表</button>
+<button class="nav-btn" onclick="switchView('import',this)">➕ 添加</button>
+<button class="nav-btn" onclick="switchView('wrong',this)">❌ 不认识</button>
+<button class="nav-btn" onclick="switchView('stats',this)">📊 统计</button>
+</div>
+<div id="view-study" class="view active"><div id="study-area"></div></div>
+<div id="view-list" class="view"><div class="word-list" id="word-list"></div></div>
+<div id="view-import" class="view">
+<div class="import-area">
+<h3 style="margin-bottom:10px">添加新字卡</h3>
+<p style="font-size:13px;color:#999;margin-bottom:10px">每行一个字，格式：字 拼音 组词 造句（空格分隔）<br>例如：龙 lóng 龙舟 端午节赛龙舟。</p>
+<textarea id="import-text" placeholder="龙 lóng 龙舟 端午节赛龙舟。&#10;凤 fèng 凤凰 凤凰是传说中的神鸟。"></textarea>
+<button class="import-btn" onclick="importCards()">📥 导入字卡</button>
+<button class="import-btn" style="background:#e17055;margin-top:5px" onclick="exportCards()">📤 导出数据</button>
+<button class="import-btn" style="background:#fdcb6e;color:#333;margin-top:5px" onclick="resetAll()">🔄 重置所有数据</button>
+</div>
+<div class="import-info">数据自动保存在浏览器中</div>
+</div>
+<div id="view-wrong" class="view"><div id="wrong-area"></div></div>
+<div id="view-stats" class="view"><div id="stats-area"></div></div>
 </div>
 
 <script>
-// ============ Data Model ============
-const INTERVALS = [1, 2, 7, 15, 30]; // 遗忘曲线复习间隔（天）
-const STORAGE_KEY = 'wenhao_flashcards';
+// ===== CONFIG =====
+const INTERVALS = [1,2,7,15,30];
+const STORAGE_KEY = 'wenhao_flashcards_v4';
+const OLD_STORAGE_KEY = 'wenhao_flashcards';
+const DAILY_LIMIT = 100;
 
-function getToday() {
-  return new Date().toISOString().split('T')[0];
-}
+function getToday(){ return new Date().toISOString().split('T')[0]; }
+function addDays(d,n){ const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().split('T')[0]; }
+function yesterday(){ return addDays(getToday(),-1); }
 
-function addDays(dateStr, days) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-}
-
-// ============ DEFAULT CARDS ============
-const DEFAULT_CARDS = [
-{char:"广",pinyin:"guǎng",word:"广场",sentence:"广场上人山人海。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"取",pinyin:"qǔ",word:"取得",sentence:"他取得了第一名。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"暑",pinyin:"shǔ",word:"暑假",sentence:"暑假你打算去哪？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"些",pinyin:"xiē",word:"这些",sentence:"桌上有一些苹果。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"视",pinyin:"shì",word:"视觉",sentence:"保护视力非常重要。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"介",pinyin:"jiè",word:"介绍",sentence:"请向大家介绍一下。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"绍",pinyin:"sào",word:"介绍",sentence:"他的介绍很详细。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"记",pinyin:"jì",word:"记忆",sentence:"我会永远记在心里。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"录",pinyin:"lù",word:"录取",sentence:"录音机里传出歌声。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"造",pinyin:"zào",word:"创造",sentence:"劳动创造了世界。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"形",pinyin:"xíng",word:"形式",sentence:"这个形状很特别。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"状",pinyin:"zhuàng",word:"状态",sentence:"他获得了三张奖状。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"周",pinyin:"zhōu",word:"周围",sentence:"周末去公园划船吧。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"壁",pinyin:"bì",word:"墙壁",sentence:"墙壁上挂着一幅画。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"距",pinyin:"jù",word:"距离",sentence:"保持安全车距。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"楚",pinyin:"chǔ",word:"清楚",sentence:"他把事情说清楚了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"筑",pinyin:"zhù",word:"建筑",sentence:"这座建筑非常宏伟。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"博",pinyin:"bó",word:"博物馆",sentence:"博物馆里文物很多。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"映",pinyin:"yìng",word:"倒映",sentence:"湖中倒映着白塔。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"趣",pinyin:"qù",word:"兴趣",sentence:"这本书非常有意思。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"务",pinyin:"wù",word:"任务",sentence:"竭诚为您服务。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"艺",pinyin:"yì",word:"艺术",sentence:"剪纸是一门民间艺术。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"珍",pinyin:"zhēn",word:"珍珠",sentence:"请珍惜相处的时间。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"贵",pinyin:"guì",word:"昂贵",sentence:"友谊比金钱更珍贵。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"历",pinyin:"lì",word:"历史",sentence:"历史的长河滚滚向前。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"史",pinyin:"shǐ",word:"史诗",sentence:"我们要铭记这段历史。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"吸",pinyin:"xī",word:"吸引",sentence:"花朵吸引了蜜蜂。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"引",pinyin:"yǐn",word:"引导",sentence:"老师引导我们思考。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"装",pinyin:"zhuāng",word:"装饰",sentence:"她的服装很漂亮。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"既",pinyin:"jì",word:"既然",sentence:"既然来了就多住几天。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"室",pinyin:"shì",word:"教室",sentence:"教室里非常安静。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"折",pinyin:"zhé",word:"折断",sentence:"请把纸折成飞机。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"捆",pinyin:"kǔn",word:"捆绑",sentence:"他抱来一捆柴火。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"团",pinyin:"tuán",word:"团结",sentence:"团结就是力量。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"另",pinyin:"lìng",word:"另外",sentence:"我还有另外的想法。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"禁",pinyin:"jìn",word:"禁止",sentence:"严禁在室内抽烟。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"绝",pinyin:"jué",word:"绝望",sentence:"这种景色绝美。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"鸣",pinyin:"míng",word:"鸣叫",sentence:"窗外传来阵阵蝉鸣。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"含",pinyin:"hán",word:"含有",sentence:"橘子含有维生素。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"岭",pinyin:"lǐng",word:"山岭",sentence:"秦岭山脉郁郁葱葱。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"吴",pinyin:"wú",word:"吴国",sentence:"吴老师正在讲课。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"调",pinyin:"diào",word:"调查",sentence:"这台空调效果很好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"仰",pinyin:"yǎng",word:"仰望",sentence:"我仰望着灿烂星空。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"迪",pinyin:"dí",word:"启迪",sentence:"书籍可以启迪智慧。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"聚",pinyin:"jù",word:"聚会",sentence:"亲友团聚在一起。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"借",pinyin:"jiè",word:"借书",sentence:"借我一支笔用用。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"助",pinyin:"zhù",word:"帮助",sentence:"互帮互助是美德。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"握",pinyin:"wò",word:"握手",sentence:"两人友好地握了手。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"妙",pinyin:"miào",word:"美妙",sentence:"这是一个巧妙的办法。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"忘",pinyin:"wàng",word:"忘记",sentence:"别忘了带钥匙。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"告",pinyin:"gào",word:"告诉",sentence:"爸爸告诉我一个秘密。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"航",pinyin:"háng",word:"航行",sentence:"飞机在云海中航行。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"腾",pinyin:"téng",word:"沸腾",sentence:"巨龙在空中飞腾。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"消",pinyin:"xiāo",word:"消息",sentence:"这是一个好消息。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"息",pinyin:"xī",word:"休息",sentence:"累了就休息一会儿。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"预",pinyin:"yù",word:"预报",sentence:"天气预报说明天有雨。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"福",pinyin:"fú",word:"幸福",sentence:"祝你生活幸福。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"贡",pinyin:"gòng",word:"贡献",sentence:"科学家贡献巨大。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"献",pinyin:"xiàn",word:"献花",sentence:"护士献出了爱心。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"抢",pinyin:"qiǎng",word:"抢劫",sentence:"我们要抢先一步到达。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"童",pinyin:"tóng",word:"儿童",sentence:"他有一个快乐的童年。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"故",pinyin:"gù",word:"故事",sentence:"我喜欢听奶奶讲故事。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"报",pinyin:"bào",word:"报纸",sentence:"我每天早上读报纸。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"徒",pinyin:"tú",word:"徒弟",sentence:"他今天徒步走了十公里。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"现",pinyin:"xiàn",word:"现在",sentence:"现在是北京时间晚上八点。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"间",pinyin:"jiān",word:"时间",sentence:"我的房间很整洁。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"意",pinyin:"yì",word:"意思",sentence:"你这句话是什么意思？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"思",pinyin:"sī",word:"思想",sentence:"他正在认真思考问题。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"汉",pinyin:"hàn",word:"汉语",sentence:"我们都在学习汉语。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"接",pinyin:"jiē",word:"接受",sentence:"请接受我的道歉。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"极",pinyin:"jí",word:"积极",sentence:"他对工作非常积极。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"仍",pinyin:"réng",word:"仍然",sentence:"天气很冷他仍然穿短袖。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"姓",pinyin:"xìng",word:"姓名",sentence:"请问您贵姓大名？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"房",pinyin:"fáng",word:"房间",sentence:"这栋房屋很旧了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"感",pinyin:"gǎn",word:"感觉",sentence:"我感觉今天有点冷。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"烧",pinyin:"shāo",word:"燃烧",sentence:"他发烧了很难受。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"护",pinyin:"hù",word:"保护",sentence:"白衣护士很辛苦。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"士",pinyin:"shì",word:"护士",sentence:"士兵们在保卫祖国。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"量",pinyin:"liàng",word:"数量",sentence:"请问箱子的重量是多少？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"体",pinyin:"tǐ",word:"体育",sentence:"每天锻炼身体好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"温",pinyin:"wēn",word:"温度",sentence:"请测量一下你的体温。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"检",pinyin:"jiǎn",word:"检查",sentence:"医生在给病人做检查。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"查",pinyin:"chá",word:"检查",sentence:"我需要查找一些资料。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"针",pinyin:"zhēn",word:"针头",sentence:"她害怕打针吃药。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"药",pinyin:"yào",word:"药物",sentence:"这个药需要一天吃三次。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"虚",pinyin:"xū",word:"虚心",sentence:"我们要虚心接受批评。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"惊",pinyin:"jīng",word:"惊讶",sentence:"听到消息我非常惊讶。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"场",pinyin:"chǎng",word:"场地",sentence:"孩子们在操场上玩耍。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"敲",pinyin:"qiāo",word:"敲门",sentence:"他轻轻地敲了敲门。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"华",pinyin:"huá",word:"中华",sentence:"我们都是中华儿女。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"静",pinyin:"jìng",word:"安静",sentence:"请保持安静。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"推",pinyin:"tuī",word:"推开",sentence:"他推开门走了进来。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"怀",pinyin:"huái",word:"怀念",sentence:"我很怀念家乡的美食。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"度",pinyin:"dù",word:"温度",sentence:"我们计划下周去度假。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"摄",pinyin:"shè",word:"摄影",sentence:"他喜欢摄影。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"氏",pinyin:"shì",word:"氏族",sentence:"今天气温二十摄氏度。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"猜",pinyin:"cāi",word:"猜想",sentence:"让我来猜猜你的年龄。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"零",pinyin:"líng",word:"零食",sentence:"今天气温是零度。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"嗡",pinyin:"wēng",word:"嗡嗡响",sentence:"蜜蜂嗡嗡地飞来飞去。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"传",pinyin:"chuán",word:"传说",sentence:"这个传说很有趣。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"粉",pinyin:"fěn",word:"粉色",sentence:"她最喜欢粉色。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"考",pinyin:"kǎo",word:"考试",sentence:"下周我们有一次考试。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"腰",pinyin:"yāo",word:"腰带",sentence:"他弯下腰捡起笔。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"梢",pinyin:"shāo",word:"树梢",sentence:"小鸟停在树梢上。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"盘",pinyin:"pán",word:"盘子",sentence:"盘子是用来放水果的。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"珠",pinyin:"zhū",word:"珍珠",sentence:"她戴着一串珍珠项链。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"欢",pinyin:"huān",word:"喜欢",sentence:"我们热烈欢迎新同学。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"常",pinyin:"cháng",word:"常常",sentence:"他常常去图书馆看书。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"却",pinyin:"què",word:"冷却",sentence:"我去了他却不在家。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"招",pinyin:"zhāo",word:"招手",sentence:"她向我招手。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"随",pinyin:"suí",word:"随便",sentence:"你随便坐不要客气。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"舞",pinyin:"wǔ",word:"舞蹈",sentence:"她跳舞跳得非常好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"糖",pinyin:"táng",word:"糖果",sentence:"小孩子都喜欢吃糖果。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"争",pinyin:"zhēng",word:"争取",sentence:"我们要争取更好成绩。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"尝",pinyin:"cháng",word:"尝试",sentence:"你尝尝这道菜味道很好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"咸",pinyin:"xián",word:"咸味",sentence:"这个菜太咸了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"凉",pinyin:"liáng",word:"凉快",sentence:"天气很凉快。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"答",pinyin:"dá",word:"回答",sentence:"请回答我的问题。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"底",pinyin:"dǐ",word:"到底",sentence:"你到底去不去？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"处",pinyin:"chù",word:"到处",sentence:"公园里到处都是花。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"让",pinyin:"ràng",word:"让步",sentence:"请给老人让座。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"哗",pinyin:"huā",word:"哗啦",sentence:"雨哗啦哗啦地下起来。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"首",pinyin:"shǒu",word:"首都",sentence:"北京是中国的首都。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"疑",pinyin:"yí",word:"疑问",sentence:"他心里充满了疑问。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"霜",pinyin:"shuāng",word:"霜冻",sentence:"秋天早晨草地上有白霜。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"低",pinyin:"dī",word:"低头",sentence:"他低着头走路。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"乡",pinyin:"xiāng",word:"故乡",sentence:"我来自美丽的小乡村。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"登",pinyin:"dēng",word:"登上",sentence:"我们登上了长城。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"鹳",pinyin:"guàn",word:"鹳鸟",sentence:"鹳鸟在天空飞翔。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"雀",pinyin:"què",word:"麻雀",sentence:"麻雀在树上叫。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"楼",pinyin:"lóu",word:"楼房",sentence:"我们住在三楼。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"认",pinyin:"rèn",word:"认识",sentence:"我认识那个新同学。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"洒",pinyin:"sǎ",word:"洒水",sentence:"他在花园里洒水。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"银",pinyin:"yín",word:"银行",sentence:"我去银行存钱。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"皎",pinyin:"jiǎo",word:"皎洁",sentence:"夜晚月光皎洁明亮。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"洁",pinyin:"jié",word:"洁白",sentence:"她的衣服洁白无瑕。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"挨",pinyin:"āi",word:"挨着",sentence:"两个孩子挨着坐一起。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"沉",pinyin:"chén",word:"沉重",sentence:"这个箱子太沉重了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"滚",pinyin:"gǔn",word:"滚动",sentence:"球在草地上滚动。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"流",pinyin:"liú",word:"流水",sentence:"小河里的水在流动。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"景",pinyin:"jǐng",word:"景色",sentence:"这里的风景很美丽。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"必",pinyin:"bì",word:"必须",sentence:"明天你必须来学校。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"须",pinyin:"xū",word:"必须",sentence:"他留着长长的胡须。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"壶",pinyin:"hú",word:"茶壶",sentence:"妈妈买了一个新茶壶。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"瓦",pinyin:"wǎ",word:"瓦特",sentence:"灯泡功率是40瓦特。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"特",pinyin:"tè",word:"特别",sentence:"今天的天气特别好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"英",pinyin:"yīng",word:"英国",sentence:"他是一位民族英雄。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"蒸",pinyin:"zhēng",word:"蒸汽",sentence:"锅里冒出了热蒸汽。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"冲",pinyin:"chōng",word:"冲洗",sentence:"请把照片冲洗出来。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"炉",pinyin:"lú",word:"炉子",sentence:"冬天需要烧火炉取暖。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"试",pinyin:"shì",word:"考试",sentence:"我们要认真对待考试。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"验",pinyin:"yàn",word:"经验",sentence:"这个实验很有趣。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"位",pinyin:"wèi",word:"位置",sentence:"请回到你的位置上。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"世纪",pinyin:"shìjì",word:"世纪",sentence:"二十一世纪科技发达。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"刻",pinyin:"kè",word:"刻苦",sentence:"他学习非常刻苦。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"舟",pinyin:"zhōu",word:"小舟",sentence:"一只小舟在湖上。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"守",pinyin:"shǒu",word:"守护",sentence:"妈妈守护着家。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"待",pinyin:"dài",word:"等待",sentence:"请耐心等待。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"休",pinyin:"xiū",word:"休息",sentence:"周末好好休息。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"撞",pinyin:"zhuàng",word:"碰撞",sentence:"两辆车撞在一起了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"互",pinyin:"hù",word:"互相",sentence:"同学之间要互相帮助。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"灭",pinyin:"miè",word:"消灭",sentence:"消防员扑灭了火。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"似",pinyin:"sì",word:"似乎",sentence:"他似乎很开心。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"诗",pinyin:"shī",word:"诗歌",sentence:"李白写了很多诗。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"阴",pinyin:"yīn",word:"阴天",sentence:"今天是阴天。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"岸",pinyin:"àn",word:"河岸",sentence:"河岸边有柳树。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"集",pinyin:"jí",word:"集合",sentence:"大家快来集合。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"初",pinyin:"chū",word:"初始",sentence:"这是我们初次见面。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"丰",pinyin:"fēng",word:"丰富",sentence:"这里资源很丰富。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"拜",pinyin:"bài",word:"拜年",sentence:"春节去给爷爷拜年。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"统",pinyin:"tǒng",word:"统一",sentence:"祖国统一是大事。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"艘",pinyin:"sōu",word:"一艘",sentence:"海上有一艘大船。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"联",pinyin:"lián",word:"联合",sentence:"大家联合起来。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"雄",pinyin:"xióng",word:"英雄",sentence:"他是一位大英雄。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"使",pinyin:"shǐ",word:"使用",sentence:"请正确使用工具。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"旗",pinyin:"qí",word:"旗帜",sentence:"五星红旗迎风飘扬。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"念",pinyin:"niàn",word:"想念",sentence:"我很想念你。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"奥",pinyin:"ào",word:"奥秘",sentence:"大自然充满奥秘。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"妻",pinyin:"qī",word:"妻子",sentence:"他的妻子很善良。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"羿",pinyin:"yì",word:"后羿",sentence:"后羿射下了九个太阳。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"勇",pinyin:"yǒng",word:"勇敢",sentence:"他是个勇敢的孩子。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"示",pinyin:"shì",word:"表示",sentence:"他表示同意。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"赠",pinyin:"zèng",word:"赠送",sentence:"他赠送我一本书。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"重",pinyin:"zhòng",word:"重要",sentence:"学习非常重要。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"庆",pinyin:"qìng",word:"庆祝",sentence:"大家一起庆祝节日。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"院",pinyin:"yuàn",word:"医院",sentence:"他去医院看病。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"遇",pinyin:"yù",word:"遇到",sentence:"我遇到了老朋友。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"愉",pinyin:"yú",word:"愉快",sentence:"祝你玩得愉快。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"商",pinyin:"shāng",word:"商店",sentence:"我去商店买东西。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"况",pinyin:"kuàng",word:"情况",sentence:"目前情况怎么样？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"杰",pinyin:"jié",word:"杰出",sentence:"他是一位杰出的人。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"琼",pinyin:"qióng",word:"琼浆",sentence:"仙境中有琼浆玉液。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"幽默",pinyin:"yōumò",word:"幽默",sentence:"他说话很幽默。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"兰",pinyin:"lán",word:"兰花",sentence:"兰花香气淡雅。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"曲",pinyin:"qǔ",word:"歌曲",sentence:"这首歌曲很好听。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"严肃",pinyin:"yánsù",word:"严肃",sentence:"老师表情很严肃。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"夸",pinyin:"kuā",word:"夸奖",sentence:"老师夸奖了他。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"卓",pinyin:"zhuó",word:"卓越",sentence:"他取得了卓越成就。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"抱",pinyin:"bào",word:"拥抱",sentence:"妈妈抱着宝宝。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"荷",pinyin:"hé",word:"荷花",sentence:"荷花在池塘里开放。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"情",pinyin:"qíng",word:"心情",sentence:"今天心情很好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"越",pinyin:"yuè",word:"越来越",sentence:"天气越来越暖了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"瑚",pinyin:"hú",word:"珊瑚",sentence:"海底有美丽的珊瑚。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"块",pinyin:"kuài",word:"一块",sentence:"给你一块饼干。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"油",pinyin:"yóu",word:"石油",sentence:"汽车需要加油。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"完",pinyin:"wán",word:"完成",sentence:"作业终于完成了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"男",pinyin:"nán",word:"男孩",sentence:"那个男孩跑得很快。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"服",pinyin:"fú",word:"衣服",sentence:"这件衣服很好看。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"栋",pinyin:"dòng",word:"一栋",sentence:"那是一栋高楼。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"露",pinyin:"lù",word:"露水",sentence:"清晨草叶上有露水。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"钻",pinyin:"zuān",word:"钻石",sentence:"钻石闪闪发光。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"壳",pinyin:"ké",word:"蛋壳",sentence:"鸡蛋壳碎了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"欠",pinyin:"qiàn",word:"欠缺",sentence:"他还欠我一本书。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"偷",pinyin:"tōu",word:"小偷",sentence:"小偷被警察抓住了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"柜",pinyin:"guì",word:"柜子",sentence:"把书放进柜子里。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"粒",pinyin:"lì",word:"一粒",sentence:"桌上有一粒米。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"波",pinyin:"bō",word:"波浪",sentence:"海上波浪翻滚。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"齐",pinyin:"qí",word:"整齐",sentence:"教室打扫得很整齐。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"嘎",pinyin:"gā",word:"嘎嘎",sentence:"小鸭嘎嘎叫。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"排",pinyin:"pái",word:"排队",sentence:"请大家排好队。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"拍",pinyin:"pāi",word:"拍手",sentence:"大家一起拍手。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"饼",pinyin:"bǐng",word:"饼干",sentence:"我喜欢吃饼干。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"蹲",pinyin:"dūn",word:"蹲下",sentence:"他蹲下来系鞋带。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"拣",pinyin:"jiǎn",word:"挑拣",sentence:"他在挑拣苹果。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"理",pinyin:"lǐ",word:"道理",sentence:"这个道理很简单。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"擦",pinyin:"cā",word:"擦干",sentence:"请把桌子擦干净。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"伤",pinyin:"shāng",word:"受伤",sentence:"他的手受伤了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"眸",pinyin:"móu",word:"眼眸",sentence:"她有一双明亮的眼眸。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"哎",pinyin:"āi",word:"哎呀",sentence:"哎呀忘带钥匙了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"梨",pinyin:"lí",word:"梨子",sentence:"这个梨子很甜。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"先",pinyin:"xiān",word:"先生",sentence:"先做作业再去玩。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"懂",pinyin:"dǒng",word:"懂得",sentence:"我懂得了这个道理。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"合",pinyin:"hé",word:"合作",sentence:"大家一起合作。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"刺",pinyin:"cì",word:"刺猬",sentence:"刺猬身上有很多刺。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"猬",pinyin:"wèi",word:"刺猬",sentence:"刺猬在草丛里。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"如",pinyin:"rú",word:"如果",sentence:"如果下雨就不去了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"脏",pinyin:"zāng",word:"肮脏",sentence:"手脏了要洗手。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"扎",pinyin:"zhā",word:"扎辫子",sentence:"妈妈帮她扎辫子。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"案",pinyin:"àn",word:"答案",sentence:"这道题的答案是什么？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"胖",pinyin:"pàng",word:"胖子",sentence:"他比去年胖了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"交",pinyin:"jiāo",word:"交朋友",sentence:"我交了一个新朋友。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"线",pinyin:"xiàn",word:"线条",sentence:"画一条直线。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"劲",pinyin:"jìn",word:"使劲",sentence:"他使劲推开了门。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"吵",pinyin:"chǎo",word:"吵闹",sentence:"请不要吵闹。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"闻",pinyin:"wén",word:"新闻",sentence:"今天有什么新闻？",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"味",pinyin:"wèi",word:"味道",sentence:"这道菜味道很好。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"瓣",pinyin:"bàn",word:"花瓣",sentence:"花瓣随风飘落。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"半",pinyin:"bàn",word:"一半",sentence:"苹果分成两半。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"缺",pinyin:"quē",word:"缺少",sentence:"班里缺少一个人。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"永",pinyin:"yǒng",word:"永远",sentence:"我们永远是朋友。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"踮",pinyin:"diǎn",word:"踮脚",sentence:"他踮起脚往远处看。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"塌",pinyin:"tā",word:"倒塌",sentence:"旧房子倒塌了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"捏",pinyin:"niē",word:"捏紧",sentence:"他紧紧捏住了绳子。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"举",pinyin:"jǔ",word:"举手",sentence:"请举手回答问题。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"赛",pinyin:"sài",word:"比赛",sentence:"运动会有跑步比赛。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"评",pinyin:"píng",word:"评价",sentence:"老师给了很好的评价。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"判",pinyin:"pàn",word:"判断",sentence:"你的判断是对的。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"吞",pinyin:"tūn",word:"吞下",sentence:"他一口吞下了药。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"轮",pinyin:"lún",word:"车轮",sentence:"自行车有两个轮子。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"慌",pinyin:"huāng",word:"慌张",sentence:"不要慌张慢慢来。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"厚",pinyin:"hòu",word:"厚度",sentence:"这本书很厚。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"轰",pinyin:"hōng",word:"轰隆",sentence:"天上轰隆一声雷响。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"隆",pinyin:"lóng",word:"轰隆",sentence:"那里非常隆重。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"厢",pinyin:"xiāng",word:"车厢",sentence:"车厢里坐满了人。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"客",pinyin:"kè",word:"客人",sentence:"家里来了客人。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"慰",pinyin:"wèi",word:"安慰",sentence:"妈妈安慰了我。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"剩",pinyin:"shèng",word:"剩下",sentence:"只剩下最后一个了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"散",pinyin:"sàn",word:"散步",sentence:"晚饭后去公园散步。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"奔",pinyin:"bēn",word:"奔跑",sentence:"小狗在草地上奔跑。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"},
-{char:"终",pinyin:"zhōng",word:"终于",sentence:"我终于做完作业了。",status:"new",level:0,nextReview:null,lastSeen:null,correctCount:0,incorrectCount:0,addedDate:"2026-03-17"}
+// ===== DEFAULT CARD DATA [char, pinyin, word, sentence] =====
+const CARD_RAW = [
+["广","guǎng","广场","广场上人山人海。"],
+["取","qǔ","取得","他取得了第一名。"],
+["暑","shǔ","暑假","暑假你打算去哪？"],
+["些","xiē","这些","桌上有一些苹果。"],
+["视","shì","视觉","保护视力非常重要。"],
+["介","jiè","介绍","请向大家介绍一下。"],
+["绍","shào","介绍","他的介绍很详细。"],
+["记","jì","记忆","我会永远记在心里。"],
+["录","lù","录取","录音机里传出歌声。"],
+["造","zào","创造","劳动创造了世界。"],
+["形","xíng","形式","这个形状很特别。"],
+["状","zhuàng","状态","他获得了三张奖状。"],
+["周","zhōu","周围","周末去公园划船吧。"],
+["壁","bì","墙壁","墙壁上挂着一幅画。"],
+["距","jù","距离","保持安全车距。"],
+["楚","chǔ","清楚","他把事情说清楚了。"],
+["筑","zhù","建筑","这座建筑非常宏伟。"],
+["博","bó","博物馆","博物馆里文物很多。"],
+["映","yìng","倒映","湖中倒映着白塔。"],
+["趣","qù","兴趣","这本书非常有趣。"],
+["务","wù","任务","竭诚为您服务。"],
+["艺","yì","艺术","剪纸是一门民间艺术。"],
+["珍","zhēn","珍珠","请珍惜相处的时间。"],
+["贵","guì","昂贵","友谊比金钱更珍贵。"],
+["历","lì","历史","历史的长河滚滚向前。"],
+["史","shǐ","史诗","我们要铭记这段历史。"],
+["吸","xī","吸引","花朵吸引了蜜蜂。"],
+["引","yǐn","引导","老师引导我们思考。"],
+["装","zhuāng","装饰","她的服装很漂亮。"],
+["既","jì","既然","既然来了就多住几天。"],
+["室","shì","教室","教室里非常安静。"],
+["折","zhé","折断","请把纸折成飞机。"],
+["捆","kǔn","捆绑","他抱来一捆柴火。"],
+["团","tuán","团结","团结就是力量。"],
+["另","lìng","另外","我还有另外的想法。"],
+["禁","jìn","禁止","严禁在室内抽烟。"],
+["绝","jué","绝望","这种景色绝美。"],
+["鸣","míng","鸣叫","窗外传来阵阵蝉鸣。"],
+["含","hán","含有","橘子含有维生素。"],
+["岭","lǐng","山岭","秦岭山脉郁郁葱葱。"],
+["吴","wú","吴国","吴老师正在讲课。"],
+["调","diào","调查","这台空调效果很好。"],
+["仰","yǎng","仰望","我仰望着灿烂星空。"],
+["迪","dí","启迪","书籍可以启迪智慧。"],
+["聚","jù","聚会","亲友团聚在一起。"],
+["借","jiè","借书","借我一支笔用用。"],
+["助","zhù","帮助","互帮互助是美德。"],
+["握","wò","握手","两人友好地握了手。"],
+["妙","miào","美妙","这是一个巧妙的办法。"],
+["忘","wàng","忘记","别忘了带钥匙。"],
+["告","gào","告诉","爸爸告诉我一个秘密。"],
+["航","háng","航行","飞机在云海中航行。"],
+["腾","téng","沸腾","巨龙在空中飞腾。"],
+["消","xiāo","消息","这是一个好消息。"],
+["息","xī","休息","累了就休息一会儿。"],
+["预","yù","预报","天气预报说明天有雨。"],
+["福","fú","幸福","祝你生活幸福。"],
+["贡","gòng","贡献","科学家贡献巨大。"],
+["献","xiàn","献花","护士献出了爱心。"],
+["抢","qiǎng","抢先","我们要抢先一步到达。"],
+["童","tóng","儿童","他有一个快乐的童年。"],
+["故","gù","故事","我喜欢听奶奶讲故事。"],
+["报","bào","报纸","我每天早上读报纸。"],
+["徒","tú","徒弟","他今天徒步走了十公里。"],
+["现","xiàn","现在","现在是北京时间晚上八点。"],
+["间","jiān","时间","我的房间很整洁。"],
+["意","yì","意思","你这句话是什么意思？"],
+["思","sī","思想","他正在认真思考问题。"],
+["汉","hàn","汉语","我们都在学习汉语。"],
+["接","jiē","接受","请接受我的道歉。"],
+["极","jí","积极","他对工作非常积极。"],
+["仍","réng","仍然","天气很冷他仍然穿短袖。"],
+["姓","xìng","姓名","请问您贵姓大名？"],
+["房","fáng","房间","这栋房屋很旧了。"],
+["感","gǎn","感觉","我感觉今天有点冷。"],
+["烧","shāo","燃烧","他发烧了很难受。"],
+["护","hù","保护","白衣护士很辛苦。"],
+["士","shì","护士","士兵们在保卫祖国。"],
+["量","liàng","数量","请问箱子的重量是多少？"],
+["体","tǐ","体育","每天锻炼身体好。"],
+["温","wēn","温度","请测量一下你的体温。"],
+["检","jiǎn","检查","医生在给病人做检查。"],
+["查","chá","检查","我需要查找一些资料。"],
+["针","zhēn","针头","她害怕打针吃药。"],
+["药","yào","药物","这个药需要一天吃三次。"],
+["虚","xū","虚心","我们要虚心接受批评。"],
+["惊","jīng","惊讶","听到消息我非常惊讶。"],
+["场","chǎng","场地","孩子们在操场上玩耍。"],
+["敲","qiāo","敲门","他轻轻地敲了敲门。"],
+["华","huá","中华","我们都是中华儿女。"],
+["静","jìng","安静","请保持安静。"],
+["推","tuī","推开","他推开门走了进来。"],
+["怀","huái","怀念","我很怀念家乡的美食。"],
+["度","dù","温度","我们计划下周去度假。"],
+["摄","shè","摄影","他喜欢摄影。"],
+["氏","shì","氏族","今天气温二十摄氏度。"],
+["猜","cāi","猜想","让我来猜猜你的年龄。"],
+["零","líng","零食","今天气温是零度。"],
+["嗡","wēng","嗡嗡响","蜜蜂嗡嗡地飞来飞去。"],
+["传","chuán","传说","这个传说很有趣。"],
+["粉","fěn","粉色","她最喜欢粉色。"],
+["考","kǎo","考试","下周我们有一次考试。"],
+["腰","yāo","腰带","他弯下腰捡起笔。"],
+["梢","shāo","树梢","小鸟停在树梢上。"],
+["盘","pán","盘子","盘子是用来放水果的。"],
+["珠","zhū","珍珠","她戴着一串珍珠项链。"],
+["欢","huān","喜欢","我们热烈欢迎新同学。"],
+["常","cháng","常常","他常常去图书馆看书。"],
+["却","què","冷却","我去了他却不在家。"],
+["招","zhāo","招手","她向我招手。"],
+["随","suí","随便","你随便坐不要客气。"],
+["舞","wǔ","舞蹈","她跳舞跳得非常好。"],
+["糖","táng","糖果","小孩子都喜欢吃糖果。"],
+["争","zhēng","争取","我们要争取更好成绩。"],
+["尝","cháng","尝试","你尝尝这道菜味道很好。"],
+["咸","xián","咸味","这个菜太咸了。"],
+["凉","liáng","凉快","天气很凉快。"],
+["答","dá","回答","请回答我的问题。"],
+["底","dǐ","到底","你到底去不去？"],
+["处","chù","到处","公园里到处都是花。"],
+["让","ràng","让步","请给老人让座。"],
+["哗","huā","哗啦","雨哗啦哗啦地下起来。"],
+["首","shǒu","首都","北京是中国的首都。"],
+["疑","yí","疑问","他心里充满了疑问。"],
+["霜","shuāng","霜冻","秋天早晨草地上有白霜。"],
+["低","dī","低头","他低着头走路。"],
+["乡","xiāng","故乡","我来自美丽的小乡村。"],
+["登","dēng","登上","我们登上了长城。"],
+["鹳","guàn","鹳鸟","鹳鸟在天空飞翔。"],
+["雀","què","麻雀","麻雀在树上叫。"],
+["楼","lóu","楼房","我们住在三楼。"],
+["认","rèn","认识","我认识那个新同学。"],
+["洒","sǎ","洒水","他在花园里洒水。"],
+["银","yín","银行","我去银行存钱。"],
+["皎","jiǎo","皎洁","夜晚月光皎洁明亮。"],
+["洁","jié","洁白","她的衣服洁白无瑕。"],
+["挨","āi","挨着","两个孩子挨着坐一起。"],
+["沉","chén","沉重","这个箱子太沉重了。"],
+["滚","gǔn","滚动","球在草地上滚动。"],
+["流","liú","流水","小河里的水在流动。"],
+["景","jǐng","景色","这里的风景很美丽。"],
+["必","bì","必须","明天你必须来学校。"],
+["须","xū","必须","他留着长长的胡须。"],
+["壶","hú","茶壶","妈妈买了一个新茶壶。"],
+["瓦","wǎ","瓦特","灯泡功率是40瓦特。"],
+["特","tè","特别","今天的天气特别好。"],
+["英","yīng","英国","他是一位民族英雄。"],
+["蒸","zhēng","蒸汽","锅里冒出了热蒸汽。"],
+["冲","chōng","冲洗","请把照片冲洗出来。"],
+["炉","lú","炉子","冬天需要烧火炉取暖。"],
+["试","shì","考试","我们要认真对待考试。"],
+["验","yàn","经验","这个实验很有趣。"],
+["位","wèi","位置","请回到你的位置上。"],
+["世","shì","世界","世界真奇妙。"],
+["纪","jì","纪念","这是有纪念意义的日子。"],
+["刻","kè","刻苦","他学习非常刻苦。"],
+["舟","zhōu","小舟","一只小舟在湖上。"],
+["守","shǒu","守护","妈妈守护着家。"],
+["待","dài","等待","请耐心等待。"],
+["休","xiū","休息","周末好好休息。"],
+["撞","zhuàng","碰撞","两辆车撞在一起了。"],
+["互","hù","互相","同学之间要互相帮助。"],
+["灭","miè","消灭","消防员扑灭了火。"],
+["似","sì","似乎","他似乎很开心。"],
+["诗","shī","诗歌","李白写了很多诗。"],
+["阴","yīn","阴天","今天是阴天。"],
+["岸","àn","河岸","河岸边有柳树。"],
+["集","jí","集合","大家快来集合。"],
+["初","chū","初始","这是我们初次见面。"],
+["丰","fēng","丰富","这里资源很丰富。"],
+["拜","bài","拜年","春节去给爷爷拜年。"],
+["统","tǒng","统一","祖国统一是大事。"],
+["艘","sōu","一艘","海上有一艘大船。"],
+["联","lián","联合","大家联合起来。"],
+["雄","xióng","英雄","他是一位大英雄。"],
+["使","shǐ","使用","请正确使用工具。"],
+["旗","qí","旗帜","五星红旗迎风飘扬。"],
+["念","niàn","想念","我很想念你。"],
+["奥","ào","奥秘","大自然充满奥秘。"],
+["妻","qī","妻子","他的妻子很善良。"],
+["羿","yì","后羿","后羿射下了九个太阳。"],
+["勇","yǒng","勇敢","他是个勇敢的孩子。"],
+["示","shì","表示","他表示同意。"],
+["赠","zèng","赠送","他赠送我一本书。"],
+["重","zhòng","重要","学习非常重要。"],
+["庆","qìng","庆祝","大家一起庆祝节日。"],
+["院","yuàn","医院","他去医院看病。"],
+["遇","yù","遇到","我遇到了老朋友。"],
+["愉","yú","愉快","祝你玩得愉快。"],
+["商","shāng","商店","我去商店买东西。"],
+["况","kuàng","情况","目前情况怎么样？"],
+["杰","jié","杰出","他是一位杰出的人。"],
+["琼","qióng","琼浆","仙境中有琼浆玉液。"],
+["幽","yōu","幽静","这条小路很幽静。"],
+["默","mò","沉默","他沉默了一会儿。"],
+["兰","lán","兰花","兰花香气淡雅。"],
+["曲","qǔ","歌曲","这首歌曲很好听。"],
+["严","yán","严格","老师对我们很严格。"],
+["肃","sù","严肃","会场气氛很严肃。"],
+["夸","kuā","夸奖","老师夸奖了他。"],
+["卓","zhuó","卓越","他取得了卓越成就。"],
+["抱","bào","拥抱","妈妈抱着宝宝。"],
+["荷","hé","荷花","荷花在池塘里开放。"],
+["情","qíng","心情","今天心情很好。"],
+["越","yuè","越来越","天气越来越暖了。"],
+["瑚","hú","珊瑚","海底有美丽的珊瑚。"],
+["块","kuài","一块","给你一块饼干。"],
+["油","yóu","石油","汽车需要加油。"],
+["完","wán","完成","作业终于完成了。"],
+["男","nán","男孩","那个男孩跑得很快。"],
+["服","fú","衣服","这件衣服很好看。"],
+["栋","dòng","一栋","那是一栋高楼。"],
+["露","lù","露水","清晨草叶上有露水。"],
+["钻","zuān","钻石","钻石闪闪发光。"],
+["壳","ké","蛋壳","鸡蛋壳碎了。"],
+["欠","qiàn","欠缺","他还欠我一本书。"],
+["偷","tōu","小偷","小偷被警察抓住了。"],
+["柜","guì","柜子","把书放进柜子里。"],
+["粒","lì","一粒","桌上有一粒米。"],
+["波","bō","波浪","海上波浪翻滚。"],
+["齐","qí","整齐","教室打扫得很整齐。"],
+["嘎","gā","嘎嘎","小鸭嘎嘎叫。"],
+["排","pái","排队","请大家排好队。"],
+["拍","pāi","拍手","大家一起拍手。"],
+["饼","bǐng","饼干","我喜欢吃饼干。"],
+["蹲","dūn","蹲下","他蹲下来系鞋带。"],
+["拣","jiǎn","挑拣","他在挑拣苹果。"],
+["理","lǐ","道理","这个道理很简单。"],
+["擦","cā","擦干","请把桌子擦干净。"],
+["伤","shāng","受伤","他的手受伤了。"],
+["眸","móu","眼眸","她有一双明亮的眼眸。"],
+["哎","āi","哎呀","哎呀忘带钥匙了。"],
+["梨","lí","梨子","这个梨子很甜。"],
+["先","xiān","先生","先做作业再去玩。"],
+["懂","dǒng","懂得","我懂得了这个道理。"],
+["合","hé","合作","大家一起合作。"],
+["刺","cì","刺猬","刺猬身上有很多刺。"],
+["猬","wèi","刺猬","刺猬在草丛里。"],
+["如","rú","如果","如果下雨就不去了。"],
+["脏","zāng","肮脏","手脏了要洗手。"],
+["扎","zhā","扎辫子","妈妈帮她扎辫子。"],
+["案","àn","答案","这道题的答案是什么？"],
+["胖","pàng","胖子","他比去年胖了。"],
+["交","jiāo","交朋友","我交了一个新朋友。"],
+["线","xiàn","线条","画一条直线。"],
+["劲","jìn","使劲","他使劲推开了门。"],
+["吵","chǎo","吵闹","请不要吵闹。"],
+["闻","wén","新闻","今天有什么新闻？"],
+["味","wèi","味道","这道菜味道很好。"],
+["瓣","bàn","花瓣","花瓣随风飘落。"],
+["半","bàn","一半","苹果分成两半。"],
+["缺","quē","缺少","班里缺少一个人。"],
+["永","yǒng","永远","我们永远是朋友。"],
+["踮","diǎn","踮脚","他踮起脚往远处看。"],
+["塌","tā","倒塌","旧房子倒塌了。"],
+["捏","niē","捏紧","他紧紧捏住了绳子。"],
+["举","jǔ","举手","请举手回答问题。"],
+["赛","sài","比赛","运动会有跑步比赛。"],
+["评","píng","评价","老师给了很好的评价。"],
+["判","pàn","判断","你的判断是对的。"],
+["吞","tūn","吞下","他一口吞下了药。"],
+["轮","lún","车轮","自行车有两个轮子。"],
+["慌","huāng","慌张","不要慌张慢慢来。"],
+["厚","hòu","厚度","这本书很厚。"],
+["轰","hōng","轰隆","天上轰隆一声雷响。"],
+["隆","lóng","轰隆","那里非常隆重。"],
+["厢","xiāng","车厢","车厢里坐满了人。"],
+["客","kè","客人","家里来了客人。"],
+["慰","wèi","安慰","妈妈安慰了我。"],
+["剩","shèng","剩下","只剩下最后一个了。"],
+["散","sàn","散步","晚饭后去公园散步。"],
+["奔","bēn","奔跑","小狗在草地上奔跑。"],
+["终","zhōng","终于","我终于做完作业了。"],
+// ===== 新增字卡 =====
+["鲁","lǔ","鲁班","鲁班是古代的大工匠。"],
+["锯","jù","锯子","他用锯子锯木头。"],
+["斧","fǔ","斧头","爸爸拿起了斧头。"],
+["砍","kǎn","砍柴","他去山上砍柴。"],
+["修","xiū","修理","爸爸在修理自行车。"],
+["建","jiàn","建设","工人们在建造大楼。"],
+["累","lèi","劳累","跑完步好累啊。"],
+["野","yě","野外","我们去野外郊游。"],
+["阵","zhèn","一阵","一阵风吹过来。"],
+["疼","téng","心疼","膝盖摔破了很疼。"],
+["掌","zhǎng","手掌","他张开了手掌。"],
+["割","gē","割草","农民在田里割稻。"],
+["鲜","xiān","新鲜","这些水果很新鲜。"],
+["血","xuè","血液","伤口流出了血。"],
+["仔","zǐ","仔细","请仔细看这道题。"],
+["细","xì","细心","她做事非常细心。"],
+["利","lì","锋利","这把刀很锋利。"],
+["齿","chǐ","牙齿","每天要刷牙保护牙齿。"],
+["抓","zhuā","抓住","猫抓住了老鼠。"],
+["蔡","cài","蔡伦","蔡伦发明了造纸术。"],
+["伦","lún","伦理","蔡伦是伟大的发明家。"],
+["代","dài","代替","他代替同学值日。"],
+["元","yuán","元旦","元旦是新年第一天。"],
+["决","jué","决定","我决定努力学习。"],
+["泡","pào","泡沫","水里冒出很多泡泡。"],
+["浆","jiāng","豆浆","早上喝一杯豆浆。"],
+["铺","pū","铺开","她把毯子铺在地上。"],
+["帘","lián","窗帘","妈妈拉开了窗帘。"],
+["术","shù","技术","他的技术很好。"],
+["之","zhī","之前","放学之前写完作业。"],
+["耐","nài","耐心","妈妈很有耐心。"],
+["防","fáng","防止","戴口罩防止感冒。"],
+["寒","hán","寒冷","冬天天气很寒冷。"],
+["蚊","wén","蚊子","夏天蚊子特别多。"],
+["帐","zhàng","蚊帐","晚上要挂好蚊帐。"],
+["领","lǐng","领导","他带领大家前进。"],
+["龟","guī","乌龟","乌龟爬得很慢。"],
+["追","zhuī","追赶","小狗追着蝴蝶跑。"],
+["次","cì","一次","这是我第一次坐飞机。"],
+["赢","yíng","赢了","我们队赢了比赛。"],
+["始","shǐ","开始","比赛马上开始了。"],
+["坚","jiān","坚强","他是个坚强的孩子。"],
+["持","chí","坚持","坚持就是胜利。"],
+["奖","jiǎng","奖品","他获得了一等奖。"],
+["励","lì","鼓励","老师鼓励我们努力。"],
+["蜻","qīng","蜻蜓","蜻蜓在水面上飞。"],
+["蜓","tíng","蜻蜓","蜻蜓的翅膀很薄。"],
+["专","zhuān","专心","上课要专心听讲。"],
+["帮","bāng","帮忙","请帮我一个忙。"],
+["弄","nòng","弄坏","别把玩具弄坏了。"],
+["立","lì","站立","同学们立刻站好。"],
+["撒","sā","撒谎","好孩子不能撒谎。"],
+["谎","huǎng","谎话","他说了一个谎话。"],
+["欺","qī","欺骗","不能欺骗别人。"],
+["道","dào","道路","马路上车辆很多。"],
+["诚","chéng","诚实","做人要诚实守信。"],
+["国","guó","国家","我爱我的国家。"],
+["每","měi","每天","我每天早起锻炼。"],
+["浇","jiāo","浇水","给花浇浇水吧。"],
+["盆","pén","花盆","窗台上有个花盆。"],
+["但","dàn","但是","他很小但是很勇敢。"],
+["泪","lèi","眼泪","她感动得流下眼泪。"],
+["煮","zhǔ","煮饭","妈妈在厨房煮饭。"],
+["熟","shú","成熟","苹果熟了变红了。"],
+["转","zhuǎn","转弯","前面路口要转弯。"],
+["平","píng","平安","祝你一路平安。"],
+["丁","dīng","园丁","园丁在修剪花草。"],
+["饱","bǎo","吃饱","我已经吃饱了。"],
+["句","jù","句子","请读一下这个句子。"],
+["司","sī","司机","司机叔叔开车很稳。"],
+["机","jī","飞机","飞机在天上飞。"],
+["姑","gū","姑娘","那个姑娘很漂亮。"],
+["娘","niáng","姑娘","新娘穿着白裙子。"],
+["警","jǐng","警察","警察叔叔指挥交通。"],
+["察","chá","观察","仔细观察这幅画。"],
+["乱","luàn","混乱","房间太乱了快收拾。"],
+["脱","tuō","脱下","进屋请脱鞋。"],
+["鞋","xié","鞋子","这双鞋子很舒服。"],
+["袜","wà","袜子","记得穿好袜子。"],
+["裤","kù","裤子","这条裤子太长了。"],
+["妖","yāo","妖怪","故事里有个妖怪。"],
+["插","chā","插花","她把花插进花瓶。"],
+["划","huá","划船","我们在湖上划船。"],
+["柴","chái","柴火","他去捡柴火。"],
+["蜡","là","蜡烛","生日蛋糕上有蜡烛。"],
+["烛","zhú","蜡烛","蜡烛的火苗在跳动。"],
+["蛋","dàn","鸡蛋","早餐吃了一个鸡蛋。"],
+["糕","gāo","蛋糕","生日蛋糕真好吃。"],
+["旅","lǚ","旅行","暑假去旅行。"],
+["陪","péi","陪伴","妈妈陪我做作业。"],
+["逛","guàng","逛街","周末去逛商场。"],
+["池","chí","池塘","池塘里有荷花。"],
+["塘","táng","池塘","鱼在池塘里游泳。"],
+["朝","cháo","朝阳","朝阳照耀着大地。"],
+["咬","yǎo","咬住","小狗咬着骨头不放。"],
+["汗","hàn","汗水","跑步后满头大汗。"],
+["喂","wèi","喂养","小朋友在喂小鸟。"],
+["肯","kěn","肯定","他肯定能做到。"],
+["坡","pō","山坡","羊群在山坡上吃草。"],
+["沿","yán","沿着","沿着小路往前走。"],
+["此","cǐ","从此","从此他们幸福地生活。"],
+["缸","gāng","水缸","院子里有口大水缸。"],
+["跌","diē","跌倒","他不小心跌倒了。"],
+["傻","shǎ","傻瓜","别做傻事了。"],
+["矮","ǎi","矮小","那棵树比较矮。"],
+["及","jí","来不及","快跑来不及了。"],
+["止","zhǐ","停止","请停止说话。"],
+["群","qún","一群","天上飞过一群大雁。"],
+["寻","xún","寻找","他在寻找丢失的书包。"],
+["井","jǐng","水井","村子里有一口老井。"],
+["洼","wā","水洼","雨后路上有很多水洼。"],
+["玻","bō","玻璃","窗户上是透明的玻璃。"],
+["璃","lí","玻璃","小心别打碎玻璃。"],
+["镜","jìng","镜子","她每天照镜子。"]
 ];
 
-function getDefaultCards() {
-  return JSON.parse(JSON.stringify(DEFAULT_CARDS));
+function makeCard(arr) {
+  return {
+    char:arr[0], pinyin:arr[1], word:arr[2], sentence:arr[3],
+    status:"new", level:0, nextReview:null, lastSeen:null,
+    correctCount:0, incorrectCount:0, hintUsed:false,
+    consecutiveNoHint:0, addedDate:getToday()
+  };
+}
+function getDefaultCards(){ return CARD_RAW.map(makeCard); }
+
+// ===== STORAGE =====
+function loadCards() {
+  let cards = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      cards = JSON.parse(raw);
+      if (Array.isArray(cards) && cards.length > 0) {
+        // Migrate: add new fields if missing
+        cards.forEach(c => {
+          if (c.hintUsed === undefined) c.hintUsed = false;
+          if (c.consecutiveNoHint === undefined) c.consecutiveNoHint = 0;
+        });
+        return cards;
+      }
+    }
+  } catch(e) { console.warn('v4 storage read error:', e); }
+
+  // Try migrating from old version
+  try {
+    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldRaw) {
+      cards = JSON.parse(oldRaw);
+      if (Array.isArray(cards) && cards.length > 0) {
+        console.log('Migrating from old storage, found', cards.length, 'cards');
+        // Fix known issues: split combined chars, fix pinyin
+        cards = migrateOldCards(cards);
+        saveCards(cards);
+        return cards;
+      }
+    }
+  } catch(e) { console.warn('Old storage migration error:', e); }
+
+  // Fresh start
+  cards = getDefaultCards();
+  saveCards(cards);
+  return cards;
 }
 
-function loadCards() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      return JSON.parse(data);
+function migrateOldCards(old) {
+  const migrated = [];
+  const seen = new Set();
+  old.forEach(c => {
+    // Fix: 绍 pinyin
+    if (c.char === '绍' && c.pinyin === 'sào') c.pinyin = 'shào';
+    // Skip combined entries (世纪, 幽默, 严肃) - we have individual chars now
+    if (['世纪','幽默','严肃'].includes(c.char)) return;
+    // Add migration fields
+    c.hintUsed = c.hintUsed || false;
+    c.consecutiveNoHint = c.consecutiveNoHint || 0;
+    if (!seen.has(c.char)) {
+      seen.add(c.char);
+      migrated.push(c);
     }
-  } catch(e) {
-    console.warn('localStorage not available:', e);
-  }
-  // First time or storage unavailable: seed with default cards
-  const defaults = getDefaultCards();
-  saveCards(defaults);
-  return defaults;
+  });
+  // Add any default chars that don't exist in old data
+  CARD_RAW.forEach(arr => {
+    if (!seen.has(arr[0])) {
+      seen.add(arr[0]);
+      migrated.push(makeCard(arr));
+    }
+  });
+  return migrated;
 }
 
 function saveCards(cards) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    const json = JSON.stringify(cards);
+    localStorage.setItem(STORAGE_KEY, json);
+    // Verify write
+    const check = localStorage.getItem(STORAGE_KEY);
+    if (!check || check.length < 10) {
+      throw new Error('Write verification failed');
+    }
   } catch(e) {
-    console.warn('Could not save to localStorage:', e);
-    alert('⚠️ 无法保存数据。请检查 Safari 设置：设置 → Safari → 高级 → 网站数据，确保未禁用 localStorage。');
+    console.error('Save failed:', e);
+    alert('⚠️ 保存失败！请检查浏览器存储设置。\n错误: ' + e.message);
   }
 }
 
-// ============ Core Logic ============
+// ===== CORE LOGIC =====
 function getTodayCards() {
   const cards = loadCards();
   const today = getToday();
-  return cards.filter(c => {
-    if (c.status === 'new') return true;
-    if (c.status === 'mastered') return false;
-    return c.nextReview <= today;
-  });
+  const queue = [];
+
+  // Priority 1: learning (不认识的字) - highest priority
+  const learning = cards.filter(c => c.status === 'learning');
+  // Priority 2: reviewing cards due today (包括点了提示的)
+  const reviewing = cards.filter(c => c.status === 'reviewing' && c.nextReview && c.nextReview <= today);
+  // Priority 3: hint-used cards that are reviewing but not yet due (提前复习)
+  const hintCards = cards.filter(c => c.status === 'reviewing' && c.hintUsed && (!c.nextReview || c.nextReview > today));
+  // Priority 4: new cards
+  const newCards = cards.filter(c => c.status === 'new');
+
+  // Combine with priority order, respect daily limit
+  queue.push(...learning, ...reviewing, ...hintCards);
+  // Fill remaining with new cards
+  const remaining = DAILY_LIMIT - queue.length;
+  if (remaining > 0) queue.push(...newCards.slice(0, remaining));
+
+  return queue;
 }
 
-function markKnown(char) {
+function getUnknownCards() {
+  return loadCards().filter(c => c.status === 'learning');
+}
+
+function markKnown(char, usedHint) {
   const cards = loadCards();
   const card = cards.find(c => c.char === char);
   if (!card) return;
-  
   const today = getToday();
   card.correctCount = (card.correctCount || 0) + 1;
   card.lastSeen = today;
-  
+  card.hintUsed = usedHint;
+
+  if (!usedHint) {
+    card.consecutiveNoHint = (card.consecutiveNoHint || 0) + 1;
+  } else {
+    card.consecutiveNoHint = 0;
+  }
+
+  // 连续两次没点提示就认识 → 直接掌握
+  if (card.consecutiveNoHint >= 2 && card.status !== 'new') {
+    card.status = 'mastered';
+    card.nextReview = null;
+    saveCards(cards);
+    return;
+  }
+
   if (card.status === 'new') {
     card.status = 'reviewing';
     card.level = 0;
+    card.nextReview = addDays(today, INTERVALS[0]);
+  } else if (card.status === 'learning') {
+    // 从不认识恢复，重新开始复习
+    card.status = 'reviewing';
+    card.level = 0;
+    card.consecutiveNoHint = 0; // 重置连续计数
     card.nextReview = addDays(today, INTERVALS[0]);
   } else {
     card.level = Math.min((card.level || 0) + 1, INTERVALS.length);
@@ -735,11 +689,9 @@ function markKnown(char) {
       card.status = 'mastered';
       card.nextReview = null;
     } else {
-      card.status = 'reviewing';
       card.nextReview = addDays(today, INTERVALS[card.level]);
     }
   }
-  
   saveCards(cards);
 }
 
@@ -747,114 +699,138 @@ function markUnknown(char) {
   const cards = loadCards();
   const card = cards.find(c => c.char === char);
   if (!card) return;
-  
   const today = getToday();
   card.incorrectCount = (card.incorrectCount || 0) + 1;
   card.lastSeen = today;
   card.status = 'learning';
   card.level = 0;
-  card.nextReview = today; // 当天再复习
-  
+  card.nextReview = today;
+  card.hintUsed = false;
+  card.consecutiveNoHint = 0;
   saveCards(cards);
 }
 
-// ============ UI ============
+// ===== UI STATE =====
 let currentQueue = [];
 let currentIndex = 0;
 let todayDone = [];
+let currentHintUsed = false;
+let reviewMode = 'normal'; // 'normal' or 'wrong'
 
 function updateStats() {
   const cards = loadCards();
-  const today = getToday();
   const todayCards = getTodayCards();
-  
   document.getElementById('stat-today').textContent = todayCards.length;
   document.getElementById('stat-known').textContent = cards.filter(c => c.status === 'reviewing' || c.status === 'mastered').length;
   document.getElementById('stat-total').textContent = cards.length;
   document.getElementById('stat-mastered').textContent = cards.filter(c => c.status === 'mastered').length;
 }
 
-function startStudy() {
-  currentQueue = getTodayCards();
-  // Shuffle
-  for (let i = currentQueue.length - 1; i > 0; i--) {
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [currentQueue[i], currentQueue[j]] = [currentQueue[j], currentQueue[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
+}
+
+function startStudy() {
+  reviewMode = 'normal';
+  currentQueue = getTodayCards();
+  // Shuffle within priority groups but keep learning cards first
+  const learning = currentQueue.filter(c => c.status === 'learning');
+  const rest = currentQueue.filter(c => c.status !== 'learning');
+  currentQueue = [...shuffle(learning), ...shuffle(rest)];
+  currentIndex = 0;
+  todayDone = [];
+  showCurrentCard();
+}
+
+function startWrongReview() {
+  reviewMode = 'wrong';
+  currentQueue = getUnknownCards();
+  shuffle(currentQueue);
   currentIndex = 0;
   todayDone = [];
   showCurrentCard();
 }
 
 function showCurrentCard() {
-  const area = document.getElementById('study-area');
-  
+  const area = document.getElementById(reviewMode === 'wrong' ? 'wrong-area' : 'study-area');
+  currentHintUsed = false;
+
   if (currentQueue.length === 0) {
-    area.innerHTML = `
-      <div class="empty">
-        <div class="emoji">📭</div>
-        <p>还没有字卡<br>点击「➕ 添加」导入字卡开始学习</p>
-      </div>`;
+    if (reviewMode === 'wrong') {
+      area.innerHTML = '<div class="empty"><div class="emoji">🎉</div><p>没有不认识的字！太棒了！</p></div>';
+    } else {
+      area.innerHTML = '<div class="empty"><div class="emoji">📭</div><p>还没有字卡<br>点击「➕ 添加」导入字卡开始学习</p></div>';
+    }
     return;
   }
-  
+
   if (currentIndex >= currentQueue.length) {
-    // Check if there are retry cards (marked unknown today)
-    const retryCards = getTodayCards();
-    if (retryCards.length > 0) {
-      currentQueue = retryCards;
-      currentIndex = 0;
-      showCurrentCard();
-      return;
+    // Check for retry
+    if (reviewMode === 'wrong') {
+      const retry = getUnknownCards();
+      if (retry.length > 0) {
+        currentQueue = shuffle(retry);
+        currentIndex = 0;
+        showCurrentCard();
+        return;
+      }
+      area.innerHTML = '<div class="card"><div class="done"><div class="emoji">🎉</div><h2>不认识的字全部复习完成！</h2><p>继续加油！</p></div></div>';
+    } else {
+      const retry = getTodayCards().filter(c => c.status === 'learning');
+      if (retry.length > 0) {
+        currentQueue = shuffle(retry);
+        currentIndex = 0;
+        showCurrentCard();
+        return;
+      }
+      area.innerHTML = '<div class="card"><div class="done"><div class="emoji">🎉</div><h2>今天学习完成！</h2><p>完成了 '+todayDone.length+' 个字卡</p><p style="margin-top:10px;font-size:14px">明天再来复习吧！</p></div></div>';
     }
-    
-    area.innerHTML = `
-      <div class="card">
-        <div class="done">
-          <div class="emoji">🎉</div>
-          <h2>今天复习完成！</h2>
-          <p>完成了 ${todayDone.length} 个字卡</p>
-          <p style="margin-top:10px;font-size:14px;">明天再来复习吧！</p>
-        </div>
-      </div>`;
     updateStats();
     return;
   }
-  
+
   const card = currentQueue[currentIndex];
-  const progress = ((currentIndex) / currentQueue.length * 100).toFixed(0);
-  const levelText = card.status === 'new' ? '新字' : 
-                    card.status === 'learning' ? '复习中' :
-                    `第${(card.level||0)+1}次复习`;
-  
+  const progress = (currentIndex / currentQueue.length * 100).toFixed(0);
+  const modeLabel = reviewMode === 'wrong' ? '🔴 专项复习' : '';
+  const levelText = card.status === 'new' ? '新字' :
+                    card.status === 'learning' ? '❌ 不认识' :
+                    card.status === 'mastered' ? '✅ 已掌握' :
+                    card.hintUsed ? '💡 需巩固' : '第'+(card.level||0)+1+'次复习';
+  const noHintInfo = card.consecutiveNoHint > 0 ? ' · 连续'+card.consecutiveNoHint+'次无提示' : '';
+
   area.innerHTML = `
-    <div class="progress-bar">
-      <div class="progress-fill" style="width:${progress}%"></div>
-    </div>
-    <div style="text-align:center;color:white;font-size:13px;margin-bottom:10px;">
-      ${currentIndex + 1} / ${currentQueue.length} · ${levelText}
+    <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+    <div style="text-align:center;color:#fff;font-size:13px;margin-bottom:10px">
+      ${modeLabel} ${currentIndex+1} / ${currentQueue.length} · ${levelText}${noHintInfo}
     </div>
     <div class="card" id="current-card">
       <div class="hanzi">${card.char}</div>
-      <div class="pinyin">${card.pinyin || ''}</div>
-      <div class="word">${card.word || ''}</div>
-      <div class="sentence">${card.sentence || ''}</div>
-      <button class="hint-btn" onclick="document.getElementById('current-card').classList.add('show-hint');this.style.display='none';">
-        💡 显示提示
-      </button>
+      <div class="pinyin">${card.pinyin||''}</div>
+      <div class="word">${card.word||''}</div>
+      <div class="sentence">${card.sentence||''}</div>
+      <button class="hint-btn" onclick="useHint()">💡 显示提示</button>
     </div>
     <div class="buttons">
-      <button class="btn btn-dont-know" onclick="handleUnknown('${card.char}')">
-        ❌ 不认识
-      </button>
-      <button class="btn btn-know" onclick="handleKnown('${card.char}')">
-        ✅ 认识
-      </button>
+      <button class="btn btn-dont-know" onclick="handleUnknown('${card.char}')">❌ 不认识</button>
+      <button class="btn btn-know" onclick="handleKnown('${card.char}')">✅ 认识</button>
     </div>`;
 }
 
+function useHint() {
+  currentHintUsed = true;
+  const el = document.getElementById('current-card');
+  if (el) {
+    el.classList.add('show-hint');
+    el.querySelector('.hint-btn').style.display = 'none';
+  }
+}
+
 function handleKnown(char) {
-  markKnown(char);
+  markKnown(char, currentHintUsed);
   todayDone.push(char);
   currentIndex++;
   showCurrentCard();
@@ -869,258 +845,207 @@ function handleUnknown(char) {
   updateStats();
 }
 
-// ============ Word List ============
+// ===== WORD LIST =====
 function showWordList() {
   const cards = loadCards();
   const list = document.getElementById('word-list');
-  
-  if (cards.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">还没有字卡</div>';
-    return;
-  }
-  
-  // Sort: learning first, then reviewing, then mastered
-  const order = { learning: 0, new: 1, reviewing: 2, mastered: 3 };
-  cards.sort((a, b) => (order[a.status] || 0) - (order[b.status] || 0));
-  
+  if (!cards.length) { list.innerHTML = '<div style="text-align:center;padding:40px;color:#999">还没有字卡</div>'; return; }
+  const order = {learning:0, new:1, reviewing:2, mastered:3};
+  cards.sort((a,b) => (order[a.status]||0) - (order[b.status]||0));
   list.innerHTML = cards.map(c => {
-    const badgeClass = `badge-${c.status || 'new'}`;
-    const statusText = c.status === 'new' ? '新' : 
-                       c.status === 'learning' ? '学习中' :
-                       c.status === 'reviewing' ? `复习L${(c.level||0)+1}` :
-                       '已掌握 ✨';
-    const nextText = c.nextReview ? `下次: ${c.nextReview}` : '';
-    return `
-      <div class="word-item">
-        <span class="char">${c.char}</span>
-        <span style="flex:1;margin-left:15px;">
-          <span style="font-size:14px;">${c.pinyin || ''}</span>
-          <span style="font-size:13px;color:#aaa;margin-left:5px;">${c.word || ''}</span>
-        </span>
-        <span>
-          <span class="badge ${badgeClass}">${statusText}</span>
-          <div class="info">${nextText}</div>
-        </span>
-      </div>`;
+    const bc = 'badge-'+(c.status||'new');
+    const st = c.status==='new'?'新': c.status==='learning'?'不认识': c.status==='reviewing'?'复习L'+(c.level||0)+1: '已掌握✨';
+    const nh = c.consecutiveNoHint > 0 ? ' 🔥'+c.consecutiveNoHint : '';
+    return `<div class="word-item"><span class="char">${c.char}</span><span style="flex:1;margin-left:15px"><span style="font-size:14px">${c.pinyin||''}</span> <span style="font-size:13px;color:#aaa">${c.word||''}</span></span><span><span class="badge ${bc}">${st}${nh}</span><div class="info">${c.nextReview?'下次:'+c.nextReview:''}</div></span></div>`;
   }).join('');
 }
 
-// ============ Import/Export ============
+// ===== WRONG LIST WITH REVIEW BUTTON =====
+function showWrongList() {
+  const cards = loadCards().filter(c => c.status === 'learning');
+  const area = document.getElementById('wrong-area');
+  if (!cards.length) {
+    area.innerHTML = '<div style="text-align:center;padding:40px;color:#fff">🎉 没有不认识的字！</div>';
+    return;
+  }
+  let html = `<button class="review-btn" onclick="startWrongReview()">🔴 专项复习这 ${cards.length} 个不认识的字</button>`;
+  html += '<div class="word-list">';
+  html += '<div style="padding:10px;font-size:14px;color:#e17055;font-weight:700">共 '+cards.length+' 个不认识的字</div>';
+  cards.forEach(c => {
+    html += `<div class="word-item"><span class="char">${c.char}</span><span style="flex:1;margin-left:15px"><span style="font-size:14px">${c.pinyin||''}</span> <span style="font-size:13px;color:#aaa">${c.word||''}</span></span><span style="font-size:12px;color:#e17055">错${c.incorrectCount||0}次</span></div>`;
+  });
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+// ===== IMPORT / EXPORT =====
 function importCards() {
   const text = document.getElementById('import-text').value.trim();
   if (!text) return alert('请输入字卡内容');
-  
   const lines = text.split('\n').filter(l => l.trim());
   const existing = loadCards();
   const existingChars = new Set(existing.map(c => c.char));
   let added = 0;
-  
   lines.forEach(line => {
     const parts = line.trim().split(/\s+/);
-    const char = parts[0];
-    if (!char || existingChars.has(char)) return;
-    
+    const ch = parts[0];
+    if (!ch || existingChars.has(ch)) return;
     existing.push({
-      char: char,
-      pinyin: parts[1] || '',
-      word: parts[2] || '',
-      status: 'new',
-      level: 0,
-      nextReview: null,
-      lastSeen: null,
-      correctCount: 0,
-      incorrectCount: 0,
-      addedDate: getToday()
+      char:ch, pinyin:parts[1]||'', word:parts[2]||'', sentence:parts.slice(3).join('')||'',
+      status:'new', level:0, nextReview:null, lastSeen:null,
+      correctCount:0, incorrectCount:0, hintUsed:false,
+      consecutiveNoHint:0, addedDate:getToday()
     });
-    existingChars.add(char);
+    existingChars.add(ch);
     added++;
   });
-  
   saveCards(existing);
   document.getElementById('import-text').value = '';
-  alert(`成功导入 ${added} 个新字卡！（跳过 ${lines.length - added} 个重复）`);
+  alert('成功导入 '+added+' 个新字卡！（跳过 '+(lines.length-added)+' 个重复）');
   updateStats();
-  startStudy();
 }
 
 function exportCards() {
-  const cards = loadCards();
-  const json = JSON.stringify(cards, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
+  // Read directly from storage and verify
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    alert('⚠️ 没有找到存储数据！');
+    return;
+  }
+  const cards = JSON.parse(raw);
+  // Show verification info
+  const total = cards.length;
+  const learned = cards.filter(c => c.status !== 'new').length;
+  const mastered = cards.filter(c => c.status === 'mastered').length;
+  const unknown = cards.filter(c => c.status === 'learning').length;
+  const msg = `即将导出 ${total} 个字卡\n✅ 已学习: ${learned} 个\n⭐ 已掌握: ${mastered} 个\n❌ 不认识: ${unknown} 个\n🆕 未学习: ${total-learned} 个\n\n确认导出？`;
+  if (!confirm(msg)) return;
+
+  // Export with metadata
+  const exportData = {
+    version: 'v4',
+    exportDate: new Date().toISOString(),
+    totalCards: total,
+    stats: { learned, mastered, unknown, newCount: total-learned },
+    cards: cards
+  };
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `wenhao_flashcards_${getToday()}.json`;
+  a.download = 'wenhao_flashcards_'+getToday()+'.json';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function resetAll() {
-  if (confirm('确定要重置所有数据吗？进度将恢复到初始状态！')) {
-    const defaults = getDefaultCards();
-    saveCards(defaults);
-    updateStats();
-    startStudy();
-    alert('所有数据已重置为初始状态');
-  }
+  if (!confirm('确定要重置所有数据吗？\n⚠️ 所有学习进度将丢失！')) return;
+  if (!confirm('再次确认：真的要重置吗？')) return;
+  const defaults = getDefaultCards();
+  saveCards(defaults);
+  updateStats();
+  startStudy();
+  alert('所有数据已重置');
 }
 
-// ============ Navigation ============
-function switchView(view, btnEl) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`view-${view}`).classList.add('active');
-  if (btnEl) btnEl.classList.add('active');
-  
-  if (view === 'study') startStudy();
-  if (view === 'list') showWordList();
-  if (view === 'wrong') showWrongList();
-  if (view === 'stats') showStats();
-}
-
-// ============ Wrong List ============
-function showWrongList() {
-  const cards = loadCards().filter(c => c.status === 'learning');
-  const list = document.getElementById('wrong-list');
-  
-  if (cards.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">🎉 没有不认识的字！</div>';
-    return;
-  }
-  
-  list.innerHTML = '<div style="padding:10px;font-size:14px;color:#e17055;font-weight:bold;">共 ' + cards.length + ' 个不认识的字</div>' +
-    cards.map(c => `
-      <div class="word-item">
-        <span class="char">${c.char}</span>
-        <span style="flex:1;margin-left:15px;">
-          <span style="font-size:14px;">${c.pinyin || ''}</span>
-          <span style="font-size:13px;color:#aaa;margin-left:5px;">${c.word || ''}</span>
-        </span>
-        <span>
-          <span style="font-size:12px;color:#e17055;">错 ${c.incorrectCount || 0} 次</span>
-        </span>
-      </div>`).join('');
-}
-
-// ============ Stats ============
+// ===== STATS =====
 function showStats() {
   const cards = loadCards();
   const area = document.getElementById('stats-area');
   const today = getToday();
-  
   const total = cards.length;
-  const newCount = cards.filter(c => c.status === 'new').length;
-  const learningCount = cards.filter(c => c.status === 'learning').length;
-  const reviewingCount = cards.filter(c => c.status === 'reviewing').length;
-  const masteredCount = cards.filter(c => c.status === 'mastered').length;
-  const seenToday = cards.filter(c => c.lastSeen === today).length;
-  const correctToday = cards.filter(c => c.lastSeen === today && c.status !== 'learning').length;
-  const wrongToday = cards.filter(c => c.lastSeen === today && c.status === 'learning').length;
-  
-  // Accuracy
-  const totalCorrect = cards.reduce((s, c) => s + (c.correctCount || 0), 0);
-  const totalWrong = cards.reduce((s, c) => s + (c.incorrectCount || 0), 0);
-  const totalAttempts = totalCorrect + totalWrong;
-  const accuracy = totalAttempts > 0 ? Math.round(totalCorrect / totalAttempts * 100) : 0;
-  
-  // Progress percentages
-  const masteredPct = total > 0 ? Math.round(masteredCount / total * 100) : 0;
-  const reviewingPct = total > 0 ? Math.round(reviewingCount / total * 100) : 0;
-  const learningPct = total > 0 ? Math.round(learningCount / total * 100) : 0;
-  const newPct = total > 0 ? Math.round(newCount / total * 100) : 0;
-  
-  // Get daily history from cards (last 7 days)
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = addDays(today, -i);
-    const studied = cards.filter(c => c.lastSeen === d).length;
-    days.push({ date: d, studied: studied });
-  }
-  
+  const newC = cards.filter(c=>c.status==='new').length;
+  const learnC = cards.filter(c=>c.status==='learning').length;
+  const revC = cards.filter(c=>c.status==='reviewing').length;
+  const mastC = cards.filter(c=>c.status==='mastered').length;
+  const seenToday = cards.filter(c=>c.lastSeen===today).length;
+  const correctToday = cards.filter(c=>c.lastSeen===today&&c.status!=='learning').length;
+  const wrongToday = cards.filter(c=>c.lastSeen===today&&c.status==='learning').length;
+  const totalCorr = cards.reduce((s,c)=>s+(c.correctCount||0),0);
+  const totalWrong = cards.reduce((s,c)=>s+(c.incorrectCount||0),0);
+  const totalAtt = totalCorr+totalWrong;
+  const acc = totalAtt>0?Math.round(totalCorr/totalAtt*100):0;
+  const mp = total>0?Math.round(mastC/total*100):0;
+  const rp = total>0?Math.round(revC/total*100):0;
+  const lp = total>0?Math.round(learnC/total*100):0;
+  const np = total>0?Math.round(newC/total*100):0;
+  const days=[];
+  for(let i=0;i<7;i++){const d=addDays(today,-i);days.push({date:d,studied:cards.filter(c=>c.lastSeen===d).length});}
+
   area.innerHTML = `
-    <div class="stats-card">
-      <h3>📅 今日学习</h3>
-      <div class="stats-row"><span class="label">已学习</span><span class="value">${seenToday} 字</span></div>
-      <div class="stats-row"><span class="label">认识</span><span class="value" style="color:#00b894;">${correctToday} 字</span></div>
-      <div class="stats-row"><span class="label">不认识</span><span class="value" style="color:#e17055;">${wrongToday} 字</span></div>
-    </div>
-    
-    <div class="stats-card">
-      <h3>📈 总体进度</h3>
-      <div class="stats-row"><span class="label">总字数</span><span class="value">${total}</span></div>
-      <div class="stats-bar">
-        <div class="stats-bar-fill" style="width:${masteredPct + reviewingPct}%;background:linear-gradient(90deg, #00b894 ${total > 0 ? masteredPct/(masteredPct+reviewingPct)*100 : 0}%, #a29bfe ${total > 0 ? masteredPct/(masteredPct+reviewingPct)*100 : 0}%);"></div>
-      </div>
-      <div class="stats-row"><span class="label">🟢 已掌握</span><span class="value">${masteredCount} (${masteredPct}%)</span></div>
-      <div class="stats-row"><span class="label">🟣 复习中</span><span class="value">${reviewingCount} (${reviewingPct}%)</span></div>
-      <div class="stats-row"><span class="label">🟡 学习中(不认识)</span><span class="value" style="color:#e17055;">${learningCount} (${learningPct}%)</span></div>
-      <div class="stats-row"><span class="label">🔵 未学习</span><span class="value">${newCount} (${newPct}%)</span></div>
-      <div class="stats-row"><span class="label">📊 总正确率</span><span class="value">${accuracy}%</span></div>
-    </div>
-    
-    <div class="stats-card">
-      <h3>📆 最近7天</h3>
-      ${days.map(d => `
-        <div class="history-item">
-          <span>${d.date}</span>
-          <span style="font-weight:bold;">${d.studied > 0 ? d.studied + ' 字' : '—'}</span>
-        </div>
-      `).join('')}
-    </div>
-    
-    <div class="data-section">
-      <h3>💾 数据管理</h3>
-      <p style="font-size:12px;color:#999;margin-bottom:10px;">导出进度可以备份学习记录，换浏览器时导入恢复。</p>
-      <button class="import-btn" onclick="exportCards()">📤 导出学习进度</button>
-      <button class="import-btn" style="background:#00b894;margin-top:5px;" onclick="importProgress()">📥 导入学习进度</button>
-      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImportFile(event)">
-    </div>
-  `;
+  <div class="stats-card"><h3>📅 今日学习</h3>
+  <div class="stats-row"><span class="label">已学习</span><span class="value">${seenToday} 字</span></div>
+  <div class="stats-row"><span class="label">认识</span><span class="value" style="color:#00b894">${correctToday} 字</span></div>
+  <div class="stats-row"><span class="label">不认识</span><span class="value" style="color:#e17055">${wrongToday} 字</span></div></div>
+  <div class="stats-card"><h3>📈 总体进度</h3>
+  <div class="stats-row"><span class="label">总字数</span><span class="value">${total}</span></div>
+  <div class="stats-bar"><div class="stats-bar-fill" style="width:${mp+rp}%;background:linear-gradient(90deg,#00b894 ${total>0?mp/(mp+rp||1)*100:0}%,#a29bfe ${total>0?mp/(mp+rp||1)*100:0}%)"></div></div>
+  <div class="stats-row"><span class="label">🟢 已掌握</span><span class="value">${mastC} (${mp}%)</span></div>
+  <div class="stats-row"><span class="label">🟣 复习中</span><span class="value">${revC} (${rp}%)</span></div>
+  <div class="stats-row"><span class="label">🔴 不认识</span><span class="value" style="color:#e17055">${learnC} (${lp}%)</span></div>
+  <div class="stats-row"><span class="label">🔵 未学习</span><span class="value">${newC} (${np}%)</span></div>
+  <div class="stats-row"><span class="label">📊 总正确率</span><span class="value">${acc}%</span></div></div>
+  <div class="stats-card"><h3>📆 最近7天</h3>
+  ${days.map(d=>'<div class="history-item"><span>'+d.date+'</span><span style="font-weight:700">'+(d.studied>0?d.studied+' 字':'—')+'</span></div>').join('')}</div>
+  <div class="data-section"><h3>💾 数据管理</h3>
+  <p style="font-size:12px;color:#999;margin-bottom:10px">导出可备份学习记录，导入可恢复进度。</p>
+  <button class="import-btn" onclick="exportCards()">📤 导出学习进度</button>
+  <button class="import-btn" style="background:#00b894;margin-top:5px" onclick="importProgress()">📥 导入学习进度</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)"></div>`;
 }
 
-// ============ Import Progress ============
-function importProgress() {
-  document.getElementById('import-file').click();
-}
-
-function handleImportFile(event) {
-  const file = event.target.files[0];
+function importProgress(){ document.getElementById('import-file').click(); }
+function handleImportFile(e) {
+  const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function(ev) {
     try {
-      const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported)) throw new Error('Invalid format');
-      saveCards(imported);
-      alert('成功导入 ' + imported.length + ' 个字卡的学习进度！');
+      let data = JSON.parse(ev.target.result);
+      // Support both v4 format (with metadata) and old flat array
+      if (data.version === 'v4' && data.cards) {
+        data = data.cards;
+      }
+      if (!Array.isArray(data)) throw new Error('格式不正确');
+      // Migrate fields
+      data.forEach(c => {
+        if (c.hintUsed === undefined) c.hintUsed = false;
+        if (c.consecutiveNoHint === undefined) c.consecutiveNoHint = 0;
+      });
+      saveCards(data);
+      alert('成功导入 '+data.length+' 个字卡的学习进度！');
       updateStats();
       startStudy();
-    } catch(err) {
-      alert('导入失败：文件格式不正确');
-    }
+    } catch(err) { alert('导入失败：'+err.message); }
   };
   reader.readAsText(file);
-  event.target.value = '';
+  e.target.value = '';
 }
 
-// ============ Init ============
-// Check localStorage availability
+// ===== NAV =====
+function switchView(view, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(view==='study') startStudy();
+  if(view==='list') showWordList();
+  if(view==='wrong') showWrongList();
+  if(view==='stats') showStats();
+}
+
+// ===== INIT =====
 function checkStorage() {
-  try {
-    localStorage.setItem('_test', '1');
-    localStorage.removeItem('_test');
-  } catch(e) {
-    const banner = document.createElement('div');
-    banner.style.cssText = 'background:#e17055;color:white;padding:12px;border-radius:12px;margin-bottom:15px;font-size:13px;text-align:center;';
-    banner.textContent = '⚠️ 存储不可用！数据无法保存。请在普通模式（非无痕）下打开，或检查 Safari 隐私设置。';
-    document.querySelector('.container').insertBefore(banner, document.querySelector('.stats'));
+  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); }
+  catch(e) {
+    const b=document.createElement('div');
+    b.style.cssText='background:#e17055;color:#fff;padding:12px;border-radius:12px;margin-bottom:15px;font-size:13px;text-align:center';
+    b.textContent='⚠️ 存储不可用！请在普通模式下打开。';
+    document.querySelector('.container').insertBefore(b,document.querySelector('.stats'));
   }
 }
-
-// Register service worker for offline support
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
-}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 checkStorage();
 updateStats();
 startStudy();
