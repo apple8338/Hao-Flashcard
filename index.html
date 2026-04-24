@@ -92,9 +92,20 @@ h1{color:#fff;text-align:center;margin-bottom:20px;font-size:24px}
 </div>
 
 <script>
-const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=100;
+const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=200, LOG_KEY='wenhao_daily_log';
 function getToday(){return new Date().toISOString().split('T')[0]}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().split('T')[0]}
+
+// ===== DAILY LOG =====
+function loadLog(){try{const r=localStorage.getItem(LOG_KEY);if(r)return JSON.parse(r)}catch(e){}return {}}
+function saveLog(log){try{localStorage.setItem(LOG_KEY,JSON.stringify(log))}catch(e){console.warn('Log save failed',e)}}
+function logAction(correct){
+  const log=loadLog(),t=getToday();
+  if(!log[t])log[t]={studied:0,correct:0,incorrect:0,details:[]};
+  log[t].studied++;
+  if(correct)log[t].correct++;else log[t].incorrect++;
+  saveLog(log);
+}
 
 // [char, pinyin, word1/word2, sentence]
 const R=[
@@ -900,16 +911,22 @@ function getUnknownCards(){return loadCards().filter(c=>c.status==='learning')}
 function markKnown(ch,usedHint){
   const c=loadCards(),card=c.find(x=>x.char===ch);if(!card)return;
   const t=getToday();card.correctCount=(card.correctCount||0)+1;card.lastSeen=t;card.hintUsed=usedHint;
+  // Per-card history
+  if(!card.history)card.history=[];
+  card.history.push({date:t,result:'correct',hint:usedHint});
   if(!usedHint)card.consecutiveNoHint=(card.consecutiveNoHint||0)+1;else card.consecutiveNoHint=0;
-  if(card.consecutiveNoHint>=2&&card.status!=='new'){card.status='mastered';card.nextReview=null;saveCards(c);return}
+  if(card.consecutiveNoHint>=2&&card.status!=='new'){card.status='mastered';card.nextReview=null;saveCards(c);logAction(true);return}
   if(card.status==='new'){card.status='reviewing';card.level=0;card.nextReview=addDays(t,INTERVALS[0])}
   else if(card.status==='learning'){card.status='reviewing';card.level=0;card.consecutiveNoHint=0;card.nextReview=addDays(t,INTERVALS[0])}
   else{card.level=Math.min((card.level||0)+1,INTERVALS.length);if(card.level>=INTERVALS.length){card.status='mastered';card.nextReview=null}else card.nextReview=addDays(t,INTERVALS[card.level])}
-  saveCards(c);
+  saveCards(c);logAction(true);
 }
 function markUnknown(ch){
   const c=loadCards(),card=c.find(x=>x.char===ch);if(!card)return;
-  const t=getToday();card.incorrectCount=(card.incorrectCount||0)+1;card.lastSeen=t;card.status='learning';card.level=0;card.nextReview=t;card.hintUsed=false;card.consecutiveNoHint=0;saveCards(c);
+  const t=getToday();card.incorrectCount=(card.incorrectCount||0)+1;card.lastSeen=t;card.status='learning';card.level=0;card.nextReview=t;card.hintUsed=false;card.consecutiveNoHint=0;
+  if(!card.history)card.history=[];
+  card.history.push({date:t,result:'incorrect'});
+  saveCards(c);logAction(false);
 }
 
 let currentQueue=[],currentIndex=0,todayDone=[],currentHintUsed=false,reviewMode='normal';
@@ -988,12 +1005,12 @@ function importCards(){
 }
 function exportCards(){
   const raw=localStorage.getItem(STORAGE_KEY);if(!raw){alert('⚠️ 没有数据！');return}
-  const cards=JSON.parse(raw),total=cards.length,learned=cards.filter(c=>c.status!=='new').length,mast=cards.filter(c=>c.status==='mastered').length,unk=cards.filter(c=>c.status==='learning').length;
-  if(!confirm(`导出 ${total} 个字卡\n✅已学:${learned} ⭐已掌握:${mast} ❌不认识:${unk} 🆕未学:${total-learned}\n确认？`))return;
-  const d={version:'v4',exportDate:new Date().toISOString(),totalCards:total,stats:{learned,mastered:mast,unknown:unk},cards};
+  const cards=JSON.parse(raw),log=loadLog(),total=cards.length,learned=cards.filter(c=>c.status!=='new').length,mast=cards.filter(c=>c.status==='mastered').length,unk=cards.filter(c=>c.status==='learning').length;
+  if(!confirm(`导出 ${total} 个字卡\n✅已学:${learned} ⭐已掌握:${mast} ❌不认识:${unk} 🆕未学:${total-learned}\n📆每日记录:${Object.keys(log).length}天\n确认？`))return;
+  const d={version:'v4',exportDate:new Date().toISOString(),totalCards:total,stats:{learned,mastered:mast,unknown:unk},dailyLog:log,cards};
   const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wenhao_flashcards_'+getToday()+'.json';a.click();URL.revokeObjectURL(url);
 }
-function resetAll(){if(!confirm('确定重置？所有进度将丢失！'))return;if(!confirm('再次确认？'))return;saveCards(getDefaultCards());updateStats();startStudy();alert('已重置')}
+function resetAll(){if(!confirm('确定重置？所有进度将丢失！'))return;if(!confirm('再次确认？'))return;saveCards(getDefaultCards());saveLog({});updateStats();startStudy();alert('已重置')}
 
 function showStats(){
   const c=loadCards(),area=document.getElementById('stats-area'),t=getToday(),total=c.length;
@@ -1012,7 +1029,11 @@ function showStats(){
 <div class="stats-card"><h3>📆 最近7天</h3>${days.map(d=>'<div class="history-item"><span>'+d.date+'</span><span style="font-weight:700">'+(d.n>0?d.n+' 字':'—')+'</span></div>').join('')}</div>
 <div class="data-section"><h3>💾 数据管理</h3><button class="import-btn" onclick="exportCards()">📤 导出学习进度</button><button class="import-btn" style="background:#00b894;margin-top:5px" onclick="document.getElementById('imp-f').click()">📥 导入学习进度</button><input type="file" id="imp-f" accept=".json" style="display:none" onchange="handleImpF(event)"></div>`;
 }
-function handleImpF(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{let d=JSON.parse(ev.target.result);if(d.version==='v4'&&d.cards)d=d.cards;if(!Array.isArray(d))throw new Error('格式错误');d.forEach(c=>{if(c.hintUsed===undefined)c.hintUsed=false;if(c.consecutiveNoHint===undefined)c.consecutiveNoHint=0});saveCards(d);alert('导入 '+d.length+' 个字卡！');updateStats();startStudy()}catch(err){alert('导入失败: '+err.message)}};r.readAsText(f);e.target.value=''}
+function handleImpF(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{let d=JSON.parse(ev.target.result);
+  // Restore daily log if present
+  if(d.dailyLog){saveLog(d.dailyLog);console.log('Restored daily log:',Object.keys(d.dailyLog).length,'days')}
+  if(d.version==='v4'&&d.cards)d=d.cards;
+  if(!Array.isArray(d))throw new Error('格式错误');d.forEach(c=>{if(c.hintUsed===undefined)c.hintUsed=false;if(c.consecutiveNoHint===undefined)c.consecutiveNoHint=0;if(!c.history)c.history=[]});saveCards(d);alert('导入 '+d.length+' 个字卡！');updateStats();startStudy()}catch(err){alert('导入失败: '+err.message)}};r.readAsText(f);e.target.value=''}
 
 function switchView(v,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');if(btn)btn.classList.add('active');if(v==='study')startStudy();if(v==='list')showWordList();if(v==='wrong')showWrongList();if(v==='stats')showStats()}
 
