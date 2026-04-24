@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;color:#333}
 .container{max-width:500px;width:100%}
-@media(min-width:768px){body{padding:30px;align-items:flex-start}.container{max-width:100%;display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto auto 1fr;gap:20px}h1{grid-column:1/-1;font-size:30px}.stats{grid-column:1/-1}.nav{grid-column:2;grid-row:3;flex-direction:column;gap:10px;margin-bottom:0}.nav-btn{flex:none;padding:16px;font-size:14px;text-align:left}.view{grid-column:1;grid-row:3}.card{min-height:min(calc(100vw - 440px), 70vh);aspect-ratio:1/1;width:100%;max-width:700px}.card .hanzi{font-size:clamp(120px,18vw,220px)}.card .pinyin{font-size:clamp(28px,4vw,42px)}.card .word{font-size:clamp(22px,3.5vw,36px)}.card .sentence{font-size:clamp(18px,2.8vw,28px)}.hint-btn{font-size:18px;padding:12px 24px;margin-top:20px}.btn{padding:24px;font-size:22px}.word-list{max-height:600px}.import-area textarea{height:250px}}
+@media(min-width:768px){body{padding:20px;align-items:flex-start;height:100vh;overflow:hidden}.container{max-width:100%;height:100%;display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto auto 1fr auto;gap:12px}h1{grid-column:1/-1;font-size:28px;margin-bottom:0}.stats{grid-column:1/-1}.nav{grid-column:2;grid-row:3/5;flex-direction:column;gap:10px;margin-bottom:0;align-self:start}.nav-btn{flex:none;padding:16px;font-size:14px;text-align:left}.view{grid-column:1;grid-row:3/5;overflow-y:auto}.card{min-height:0;height:calc(100vh - 260px);width:100%;border-radius:24px;padding:30px}.card .hanzi{font-size:clamp(180px,28vw,320px);line-height:1.1}.card .pinyin{font-size:clamp(44px,6vw,72px)}.card .word{font-size:clamp(36px,5vw,60px)}.card .sentence{font-size:clamp(28px,4vw,48px);margin-top:12px}.hint-btn{font-size:22px;padding:14px 32px;margin-top:20px}.btn{padding:22px;font-size:22px}.buttons{margin-bottom:8px}.word-list{max-height:calc(100vh - 260px);overflow-y:auto}.import-area textarea{height:250px}}
 h1{color:#fff;text-align:center;margin-bottom:20px;font-size:24px}
 .stats{display:flex;justify-content:space-around;background:rgba(255,255,255,.15);border-radius:12px;padding:12px;margin-bottom:20px;color:#fff;font-size:14px}
 .stat-item{text-align:center}.stat-num{font-size:24px;font-weight:700}.stat-label{font-size:11px;opacity:.8}
@@ -92,7 +92,7 @@ h1{color:#fff;text-align:center;margin-bottom:20px;font-size:24px}
 </div>
 
 <script>
-const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=200, LOG_KEY='wenhao_daily_log';
+const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=200, LOG_KEY='wenhao_daily_log', SESSION_KEY='wenhao_session';
 function getToday(){return new Date().toISOString().split('T')[0]}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().split('T')[0]}
 
@@ -931,6 +931,18 @@ function markUnknown(ch){
 
 let currentQueue=[],currentIndex=0,todayDone=[],currentHintUsed=false,reviewMode='normal';
 
+// ===== SESSION PERSISTENCE =====
+function saveSession(){
+  try{
+    const s={date:getToday(),queueChars:currentQueue.map(c=>c.char),index:currentIndex,done:todayDone,mode:reviewMode};
+    localStorage.setItem(SESSION_KEY,JSON.stringify(s));
+  }catch(e){console.warn('Session save failed',e)}
+}
+function loadSession(){
+  try{const r=localStorage.getItem(SESSION_KEY);if(r)return JSON.parse(r)}catch(e){}return null;
+}
+function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch(e){}}
+
 function updateStats(){
   const c=loadCards();
   document.getElementById('stat-today').textContent=getTodayCards().length;
@@ -941,18 +953,38 @@ function updateStats(){
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 function startStudy(){
-  reviewMode='normal';currentQueue=getTodayCards();
+  reviewMode='normal';
+  // Try to restore session
+  const session=loadSession();
+  if(session&&session.date===getToday()&&session.mode==='normal'&&session.index<session.queueChars.length){
+    const cards=loadCards();
+    const charMap=new Map(cards.map(c=>[c.char,c]));
+    // Rebuild queue from saved char order, skip any deleted cards
+    currentQueue=session.queueChars.map(ch=>charMap.get(ch)).filter(Boolean);
+    currentIndex=Math.min(session.index,currentQueue.length);
+    todayDone=session.done||[];
+    showCurrentCard();
+    return;
+  }
+  // No valid session — generate new queue
+  currentQueue=getTodayCards();
   const l=currentQueue.filter(c=>c.status==='learning'),r=currentQueue.filter(c=>c.status!=='learning');
-  currentQueue=[...shuffle(l),...shuffle(r)];currentIndex=0;todayDone=[];showCurrentCard();
+  currentQueue=[...shuffle(l),...shuffle(r)];
+  currentIndex=0;todayDone=[];
+  saveSession();
+  showCurrentCard();
 }
-function startWrongReview(){reviewMode='wrong';currentQueue=shuffle(getUnknownCards().slice());currentIndex=0;todayDone=[];showCurrentCard()}
+function startWrongReview(){
+  reviewMode='wrong';currentQueue=shuffle(getUnknownCards().slice());currentIndex=0;todayDone=[];
+  saveSession();showCurrentCard();
+}
 
 function showCurrentCard(){
   const area=document.getElementById(reviewMode==='wrong'?'wrong-area':'study-area');currentHintUsed=false;
   if(!currentQueue.length){area.innerHTML=reviewMode==='wrong'?'<div class="empty"><div class="emoji">🎉</div><p>没有不认识的字！</p></div>':'<div class="empty"><div class="emoji">📭</div><p>还没有字卡<br>点击「➕ 添加」开始</p></div>';return}
   if(currentIndex>=currentQueue.length){
-    if(reviewMode==='wrong'){const rt=getUnknownCards();if(rt.length>0){currentQueue=shuffle(rt);currentIndex=0;showCurrentCard();return}area.innerHTML='<div class="card"><div class="done"><div class="emoji">🎉</div><h2>不认识的字全部复习完成！</h2></div></div>'}
-    else{const rt=getTodayCards().filter(c=>c.status==='learning');if(rt.length>0){currentQueue=shuffle(rt);currentIndex=0;showCurrentCard();return}area.innerHTML='<div class="card"><div class="done"><div class="emoji">🎉</div><h2>今天学习完成！</h2><p>完成了 '+todayDone.length+' 个字卡</p></div></div>'}
+    if(reviewMode==='wrong'){const rt=getUnknownCards();if(rt.length>0){currentQueue=shuffle(rt);currentIndex=0;saveSession();showCurrentCard();return}clearSession();area.innerHTML='<div class="card"><div class="done"><div class="emoji">🎉</div><h2>不认识的字全部复习完成！</h2></div></div>'}
+    else{const rt=getTodayCards().filter(c=>c.status==='learning');if(rt.length>0){currentQueue=shuffle(rt);currentIndex=0;saveSession();showCurrentCard();return}clearSession();area.innerHTML='<div class="card"><div class="done"><div class="emoji">🎉</div><h2>今天学习完成！</h2><p>完成了 '+todayDone.length+' 个字卡</p></div></div>'}
     updateStats();return;
   }
   const card=currentQueue[currentIndex],prog=(currentIndex/currentQueue.length*100).toFixed(0);
@@ -967,8 +999,8 @@ function showCurrentCard(){
 <div class="buttons"><button class="btn btn-dont-know" onclick="handleUnknown('${esc}')">❌ 不认识</button><button class="btn btn-know" onclick="handleKnown('${esc}')">✅ 认识</button></div>`;
 }
 function useHint(){currentHintUsed=true;const el=document.getElementById('current-card');if(el){el.classList.add('show-hint');el.querySelector('.hint-btn').style.display='none'}}
-function handleKnown(ch){markKnown(ch,currentHintUsed);todayDone.push(ch);currentIndex++;showCurrentCard();updateStats()}
-function handleUnknown(ch){markUnknown(ch);todayDone.push(ch);currentIndex++;showCurrentCard();updateStats()}
+function handleKnown(ch){markKnown(ch,currentHintUsed);todayDone.push(ch);currentIndex++;saveSession();showCurrentCard();updateStats()}
+function handleUnknown(ch){markUnknown(ch);todayDone.push(ch);currentIndex++;saveSession();showCurrentCard();updateStats()}
 
 let listFilter='all';
 function showWordList(){
@@ -1010,7 +1042,7 @@ function exportCards(){
   const d={version:'v4',exportDate:new Date().toISOString(),totalCards:total,stats:{learned,mastered:mast,unknown:unk},dailyLog:log,cards};
   const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wenhao_flashcards_'+getToday()+'.json';a.click();URL.revokeObjectURL(url);
 }
-function resetAll(){if(!confirm('确定重置？所有进度将丢失！'))return;if(!confirm('再次确认？'))return;saveCards(getDefaultCards());saveLog({});updateStats();startStudy();alert('已重置')}
+function resetAll(){if(!confirm('确定重置？所有进度将丢失！'))return;if(!confirm('再次确认？'))return;saveCards(getDefaultCards());saveLog({});clearSession();updateStats();startStudy();alert('已重置')}
 
 function showStats(){
   const c=loadCards(),area=document.getElementById('stats-area'),t=getToday(),total=c.length;
