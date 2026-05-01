@@ -92,7 +92,7 @@ h1{color:#fff;text-align:center;margin-bottom:20px;font-size:24px}
 </div>
 
 <script>
-const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=200, LOG_KEY='wenhao_daily_log', SESSION_KEY='wenhao_session';
+const INTERVALS=[1,2,7,15,30], STORAGE_KEY='wenhao_flashcards_v4', OLD_KEY='wenhao_flashcards', DAILY_LIMIT=100, LOG_KEY='wenhao_daily_log', SESSION_KEY='wenhao_session';
 function getToday(){return new Date().toISOString().split('T')[0]}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().split('T')[0]}
 
@@ -995,7 +995,7 @@ function showCurrentCard(){
   const esc=card.char.replace(/'/g,"\\'");
   area.innerHTML=`<div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
 <div style="text-align:center;color:#fff;font-size:13px;margin-bottom:10px">${ml}${currentIndex+1} / ${currentQueue.length} · ${lt}${nh}</div>
-<div class="card" id="current-card"><div class="hanzi">${card.char}</div><div class="pinyin">${card.pinyin||''}</div><div class="word">${card.word||''}</div><div class="sentence">${card.sentence||''}</div><button class="hint-btn" onclick="useHint()">💡 显示提示</button></div>
+<div class="card" id="current-card"><div class="hanzi">${card.char}</div><div class="word">${card.word||''}</div><div class="sentence">${card.sentence||''}</div><button class="hint-btn" onclick="useHint()">💡 显示提示</button></div>
 <div class="buttons"><button class="btn btn-dont-know" onclick="handleUnknown('${esc}')">❌ 不认识</button><button class="btn btn-know" onclick="handleKnown('${esc}')">✅ 认识</button></div>`;
 }
 function useHint(){currentHintUsed=true;const el=document.getElementById('current-card');if(el){el.classList.add('show-hint');el.querySelector('.hint-btn').style.display='none'}}
